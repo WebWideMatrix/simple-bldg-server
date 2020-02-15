@@ -1,0 +1,6 @@
+[
+    {
+        "address": <%= @address %>,
+        "key": "http://fromteal.app"
+    }
+]
