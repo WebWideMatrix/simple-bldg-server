@@ -49,6 +49,9 @@ defmodule BldgServer.Buildings do
   """
   def get_bldg!(address), do: Repo.get_by!(Bldg, address: address)
 
+  def get_by_web_url!(url), do: Repo.get_by!(Bldg, web_url: url)
+
+
   @doc """
   Creates a bldg.
 
