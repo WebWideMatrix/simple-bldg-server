@@ -10,6 +10,10 @@ defmodule BldgServerWeb.BldgView do
     %{data: render_one(bldg, BldgView, "bldg.json")}
   end
 
+  def render("look.json", %{bldgs: bldgs}) do
+    render_many(bldgs, BldgView, "bldg.json")
+  end
+
   def render("bldg.json", %{bldg: bldg}) do
     %{id: bldg.id,
       address: bldg.address,

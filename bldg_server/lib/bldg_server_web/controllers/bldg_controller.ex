@@ -43,7 +43,7 @@ defmodule BldgServerWeb.BldgController do
 
   def look(conn, %{"flr" => flr}) do
     bldgs = Buildings.list_bldgs_in_flr(flr)
-    render(conn, "index.json", bldgs: bldgs)
+    render(conn, "look.json", bldgs: bldgs)
   end
 
   def figure_out_flr(entity) do
@@ -61,11 +61,12 @@ defmodule BldgServerWeb.BldgController do
     |> Enum.map(fn b -> [b.x, b.y] end)
     |> List.last()
     [sx, sy] = case similar_loc do
-      nil -> [:rand.uniform(200), :rand.uniform(199)]
+      nil -> [:rand.uniform(200), :rand.uniform(90)]
       _ -> similar_loc
     end
-    [x, y] = [sx, sy + 1]
+    [x, y] = [sx, sy - 1]
     # TODO handle the case where the location is already caught
+    # TODO handle the case where the location is outside the flr
     Map.merge(entity, %{"address" => "#{flr}-b(#{x},#{y})", "x" => x, "y" => y})
   end
 
