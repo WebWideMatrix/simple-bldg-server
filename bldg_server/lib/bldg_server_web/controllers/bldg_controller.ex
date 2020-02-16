@@ -55,7 +55,17 @@ defmodule BldgServerWeb.BldgController do
 
   def decide_on_location(entity) do
     %{"flr" => flr} = entity
-    {x, y} = {:rand.uniform(200), :rand.uniform(200)}
+    # try to find place near entities of the same entity-type
+    %{"entity_type" => entity_type} = entity
+    similar_loc = Buildings.get_similar_entities(flr, entity_type)
+    |> Enum.map(fn b -> [b.x, b.y] end)
+    |> List.last()
+    [sx, sy] = case similar_loc do
+      nil -> [:rand.uniform(200), :rand.uniform(199)]
+      _ -> similar_loc
+    end
+    [x, y] = [sx, sy + 1]
+    # TODO handle the case where the location is already caught
     Map.merge(entity, %{"address" => "#{flr}-b(#{x},#{y})", "x" => x, "y" => y})
   end
 
