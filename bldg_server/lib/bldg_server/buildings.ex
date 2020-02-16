@@ -3,7 +3,7 @@ defmodule BldgServer.Buildings do
   The Buildings context.
   """
 
-  import Ecto.Query, warn: false
+  import Ecto.Query, warn: false, only: [from: 2]
   alias BldgServer.Repo
 
   alias BldgServer.Buildings.Bldg
@@ -19,6 +19,12 @@ defmodule BldgServer.Buildings do
   """
   def list_bldgs do
     Repo.all(Bldg)
+  end
+
+
+  def list_bldgs_in_flr(flr) do
+    q = from b in Bldg, where: b.flr == ^flr
+    Repo.all(q)
   end
 
   @doc """

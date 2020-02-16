@@ -6,6 +6,11 @@ defmodule BldgServerWeb.BldgController do
 
   action_fallback BldgServerWeb.FallbackController
 
+  def look(conn, %{"flr" => flr}) do
+    bldgs = Buildings.list_bldgs_in_flr(flr)
+    render(conn, "index.json", bldgs: bldgs)
+  end
+
   def index(conn, _params) do
     bldgs = Buildings.list_bldgs()
     render(conn, "index.json", bldgs: bldgs)

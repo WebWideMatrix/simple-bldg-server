@@ -8,6 +8,7 @@ defmodule BldgServerWeb.Router do
   scope "/v1", BldgServerWeb do
     pipe_through :api
 
+    get "/look/:flr", BldgController, :look
     resources "/bldgs", BldgController, except: [:new, :edit]
   end
 end
