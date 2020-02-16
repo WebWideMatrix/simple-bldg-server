@@ -21,11 +21,17 @@ defmodule BldgServer.Buildings do
     Repo.all(Bldg)
   end
 
+  @doc """
+  Returns all bldgs under a given flr.
 
+  Returns empty list if no such Bldg does exists.
+  """
   def list_bldgs_in_flr(flr) do
     q = from b in Bldg, where: b.flr == ^flr
     Repo.all(q)
   end
+
+  
 
   @doc """
   Gets a single bldg.
@@ -41,7 +47,7 @@ defmodule BldgServer.Buildings do
       ** (Ecto.NoResultsError)
 
   """
-  def get_bldg!(id), do: Repo.get!(Bldg, id)
+  def get_bldg!(address), do: Repo.get_by!(Bldg, address: address)
 
   @doc """
   Creates a bldg.

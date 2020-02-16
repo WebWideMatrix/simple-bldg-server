@@ -25,21 +25,21 @@ defmodule BldgServerWeb.BldgController do
     end
   end
 
-  def show(conn, %{"id" => id}) do
-    bldg = Buildings.get_bldg!(id)
+  def show(conn, %{"address" => address}) do
+    bldg = Buildings.get_bldg!(address)
     render(conn, "show.json", bldg: bldg)
   end
 
-  def update(conn, %{"id" => id, "bldg" => bldg_params}) do
-    bldg = Buildings.get_bldg!(id)
+  def update(conn, %{"address" => address, "bldg" => bldg_params}) do
+    bldg = Buildings.get_bldg!(address)
 
     with {:ok, %Bldg{} = bldg} <- Buildings.update_bldg(bldg, bldg_params) do
       render(conn, "show.json", bldg: bldg)
     end
   end
 
-  def delete(conn, %{"id" => id}) do
-    bldg = Buildings.get_bldg!(id)
+  def delete(conn, %{"address" => address}) do
+    bldg = Buildings.get_bldg!(address)
 
     with {:ok, %Bldg{}} <- Buildings.delete_bldg(bldg) do
       send_resp(conn, :no_content, "")
