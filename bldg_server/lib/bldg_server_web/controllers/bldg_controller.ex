@@ -54,6 +54,10 @@ defmodule BldgServerWeb.BldgController do
   end
 
   def decide_on_location(entity) do
+    # floor width is: 16
+    # floor height is: 12
+    # TODO read from config
+
     %{"flr" => flr} = entity
     # try to find place near entities of the same entity-type
     %{"entity_type" => entity_type} = entity
@@ -61,7 +65,7 @@ defmodule BldgServerWeb.BldgController do
     |> Enum.map(fn b -> [b.x, b.y] end)
     |> List.last()
     [sx, sy] = case similar_loc do
-      nil -> [:rand.uniform(200), :rand.uniform(90)]
+      nil -> [:rand.uniform(16) + 1, :rand.uniform(12) + 1]
       _ -> similar_loc
     end
     [x, y] = [sx, sy - 1]
