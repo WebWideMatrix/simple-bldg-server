@@ -112,6 +112,16 @@ defmodule BldgServerWeb.BldgController do
     create(conn, %{"bldg" => bldg_params})
   end
 
-  
+  def relocate(conn, %{"address" => address, "new_address" => new_address}) do
+    # get the last part of the address: "g-b(17,24)-l0-b(11,6)" -> "b(11,6)"
+    coords_token = new_address
+    |> String.split("-")
+    |> List.last()
+    # get the coordinates: "b(11,6)" -> (11,6)
+    [[new_x_s], [new_y_s]] = Regex.scan(~r{\d+}, coords_token)
+    {{new_x, ""}, {new_y, ""}} = {Integer.parse(new_x_s), Integer.parse(new_y_s)}
+    bldg_params = %{"address" => new_address, "x" => new_x, "y" => new_y}
+    update(conn, %{"address" => address, "bldg" => bldg_params})
+  end
 
 end
