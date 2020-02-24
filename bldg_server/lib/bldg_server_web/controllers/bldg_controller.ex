@@ -68,7 +68,7 @@ defmodule BldgServerWeb.BldgController do
       nil -> [:rand.uniform(16) + 1, :rand.uniform(12) + 1]
       _ -> similar_loc
     end
-    [x, y] = [sx, sy - 1]
+    [x, y] = [sx + 1, sy]
     # TODO handle the case where the location is already caught
     # TODO handle the case where the location is outside the flr
     Map.merge(entity, %{"address" => "#{flr}-b(#{x},#{y})", "x" => x, "y" => y})
@@ -111,5 +111,7 @@ defmodule BldgServerWeb.BldgController do
     |> remove_build_params()
     create(conn, %{"bldg" => bldg_params})
   end
+
+  
 
 end
