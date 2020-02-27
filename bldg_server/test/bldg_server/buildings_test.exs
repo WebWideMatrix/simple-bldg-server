@@ -6,7 +6,8 @@ defmodule BldgServer.BuildingsTest do
   describe "bldgs" do
     alias BldgServer.Buildings.Bldg
 
-    @valid_attrs %{address: "some address", category: "some category", data: %{}, entity_type: "some entity_type", flr: "some flr", is_composite: true, name: "some name", picture_url: "some picture_url", state: "some state", summary: "some summary", tags: [], web_url: "some web_url", x: 42, y: 42}
+    @addr "g-b(1,2)-l0"
+    @valid_attrs %{address: @addr, category: "some category", data: %{}, entity_type: "some entity_type", flr: "some flr", is_composite: true, name: "some name", picture_url: "some picture_url", state: "some state", summary: "some summary", tags: [], web_url: "some web_url", x: 42, y: 42}
     @update_attrs %{address: "some updated address", category: "some updated category", data: %{}, entity_type: "some updated entity_type", flr: "some updated flr", is_composite: false, name: "some updated name", picture_url: "some updated picture_url", state: "some updated state", summary: "some updated summary", tags: [], web_url: "some updated web_url", x: 43, y: 43}
     @invalid_attrs %{address: nil, category: nil, data: nil, entity_type: nil, flr: nil, is_composite: nil, name: nil, picture_url: nil, state: nil, summary: nil, tags: nil, web_url: nil, x: nil, y: nil}
 
@@ -26,12 +27,12 @@ defmodule BldgServer.BuildingsTest do
 
     test "get_bldg!/1 returns the bldg with given id" do
       bldg = bldg_fixture()
-      assert Buildings.get_bldg!(bldg.id) == bldg
+      assert Buildings.get_bldg!(bldg.address) == bldg
     end
 
     test "create_bldg/1 with valid data creates a bldg" do
       assert {:ok, %Bldg{} = bldg} = Buildings.create_bldg(@valid_attrs)
-      assert bldg.address == "some address"
+      assert bldg.address == @addr
       assert bldg.category == "some category"
       assert bldg.data == %{}
       assert bldg.entity_type == "some entity_type"
@@ -73,13 +74,13 @@ defmodule BldgServer.BuildingsTest do
     test "update_bldg/2 with invalid data returns error changeset" do
       bldg = bldg_fixture()
       assert {:error, %Ecto.Changeset{}} = Buildings.update_bldg(bldg, @invalid_attrs)
-      assert bldg == Buildings.get_bldg!(bldg.id)
+      assert bldg == Buildings.get_bldg!(bldg.address)
     end
 
     test "delete_bldg/1 deletes the bldg" do
       bldg = bldg_fixture()
       assert {:ok, %Bldg{}} = Buildings.delete_bldg(bldg)
-      assert_raise Ecto.NoResultsError, fn -> Buildings.get_bldg!(bldg.id) end
+      assert_raise Ecto.NoResultsError, fn -> Buildings.get_bldg!(bldg.address) end
     end
 
     test "change_bldg/1 returns a bldg changeset" do
