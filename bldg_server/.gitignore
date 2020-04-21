@@ -28,3 +28,4 @@ bldg_server-*.tar
 /priv/static/
 
 .env
+.env-stack

@@ -1,0 +1,26 @@
+version: '3.1'
+
+services:
+
+  database:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: bldg_server_prod
+
+  web:
+    image: bldg-server
+    restart: always
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    environment:
+      APP_HOSTNAME: ${APP_HOSTNAME}
+      APP_PORT: ${APP_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+    depends_on:
+      - database
