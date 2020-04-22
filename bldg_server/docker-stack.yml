@@ -1,0 +1,37 @@
+version: '3.1'
+
+services:
+
+    database:
+        image: postgres
+        deploy:
+            restart_policy:
+                condition: on-failure
+        environment:
+            POSTGRES_USER: ${DB_USER}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_DB: bldg_server_prod
+        networks:
+            - backend
+    
+    web:
+        image: dibaunaumh/bldg-server:mvp
+        deploy:
+            restart_policy:
+                condition: on-failure
+        ports:
+            - ${APP_PORT}:${APP_PORT}
+        environment:
+            APP_PORT: ${APP_PORT}
+            APP_HOSTNAME: ${APP_HOSTNAME}
+            DB_USER: ${DB_USER}
+            DB_PASSWORD: ${DB_PASSWORD}
+            DB_HOST: ${DB_HOST}
+            SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+        depends_on:
+            - database_migrator
+        networks:
+            - backend
+
+networks:
+    backend:
