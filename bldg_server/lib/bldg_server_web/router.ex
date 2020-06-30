@@ -8,6 +8,7 @@ defmodule BldgServerWeb.Router do
   scope "/v1", BldgServerWeb do
     pipe_through :api
 
+    post "/bldgs/resolve_address", BldgController, :resolve_address
     get "/bldgs/look/:flr", BldgController, :look
     post "/bldgs/build", BldgController, :build
     post "/bldgs/:address/relocate_to/:new_address", BldgController, :relocate
