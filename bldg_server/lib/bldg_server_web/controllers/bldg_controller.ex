@@ -79,7 +79,7 @@ defmodule BldgServerWeb.BldgController do
   end
 
   @doc """
-    Received data for some entity, e.g.:
+    Receives data for some entity, e.g.:
     "entity": {
       "container_web_url": "https://fromteal.app",
       "web_url": "https://dibau.wordpress.com/",
@@ -122,6 +122,14 @@ defmodule BldgServerWeb.BldgController do
     {{new_x, ""}, {new_y, ""}} = {Integer.parse(new_x_s), Integer.parse(new_y_s)}
     bldg_params = %{"address" => new_address, "x" => new_x, "y" => new_y}
     update(conn, %{"address" => address, "bldg" => bldg_params})
+  end
+
+
+  @doc """
+  Receives a web_url & returns the address of the bldg matching it.
+  """
+  def resolve_address(conn, %{"web_url" => web_url}) do
+    render(conn, "show.json", bldg: Buildings.get_by_web_url!(web_url))
   end
 
 end
