@@ -6,6 +6,9 @@ app_hostname = System.fetch_env!("APP_HOSTNAME")
 db_user = System.fetch_env!("DB_USER")
 db_password = System.fetch_env!("DB_PASSWORD")
 db_host = System.fetch_env!("DB_HOST")
+{db_port, _} = Integer.parse(System.fetch_env!("DB_PORT")) # TODO add default value
+db_name = System.fetch_env!("DB_NAME")
+db_ssl = System.fetch_env!("DB_SSL") == "true"   # TODO add default value
 
 config :bldg_server, BldgServerWeb.Endpoint,
   http: [:inet6, port: String.to_integer(app_port)],
@@ -21,6 +24,8 @@ config :bldg_server,
 config :bldg_server, BldgServer.Repo,
   username: db_user,
   password: db_password,
-  database: "bldg_server_prod",
+  database: db_name,
   hostname: db_host,
+  port: db_port,
+  ssl: db_ssl,
   pool_size: 10
