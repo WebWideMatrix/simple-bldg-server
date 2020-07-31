@@ -1,0 +1,5 @@
+# Add 'db-migrations' label to any change inside the migrations folder, exceper the formatter file
+db-migrations:
+- bldg_server/priv/repo/migrations/*
+
+
