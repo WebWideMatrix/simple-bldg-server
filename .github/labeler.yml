@@ -1,0 +1,10 @@
+# Add 'repo' label to any root file changes
+repo:
+  - ./*
+  
+
+# Add 'DB-migrations' label to any change inside the migrations folder
+DB-migrations:
+- any: ['bldg_server/priv/repo/migrations/*', '!bldg_server/priv/repo/migrations/.formatter.exs']
+
+
