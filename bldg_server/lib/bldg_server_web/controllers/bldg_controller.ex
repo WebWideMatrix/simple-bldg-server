@@ -48,7 +48,8 @@ defmodule BldgServerWeb.BldgController do
 
   def figure_out_flr(entity) do
     %{"container_web_url" => container} = entity
-    container_bldg = Buildings.get_by_web_url!(container)
+    container_bldg = Buildings.get_by_web_url(container)
+    # TODO check for nil
     container_address = container_bldg.address
     Map.put(entity, "flr", "#{container_address}-l0")
   end
@@ -128,8 +129,14 @@ defmodule BldgServerWeb.BldgController do
   @doc """
   Receives a web_url & returns the address of the bldg matching it.
   """
-  def resolve_address(conn, %{"web_url" => web_url}) do
-    render(conn, "show.json", bldg: Buildings.get_by_web_url!(web_url))
+  def resolve_address(conn, %{"web_url" => escaped_web_url}) do
+    web_url = URI.decode(escaped_web_url)
+    case Buildings.get_by_web_url(web_url) do
+      nil -> conn
+              |> put_status(:not_found)
+              |> text("Coudn't find a matching building")
+      bldg -> text conn, bldg.address
+    end
   end
 
 end
