@@ -66,7 +66,7 @@ defmodule BldgServerWeb.BldgController do
     |> Enum.map(fn b -> [b.x, b.y] end)
     |> List.last()
     [sx, sy] = case similar_loc do
-      nil -> [:rand.uniform(16) + 1, :rand.uniform(12) + 1]
+      nil -> [:rand.uniform(14) + 1, :rand.uniform(11) + 1]
       _ -> similar_loc
     end
     [x, y] = [sx + 1, sy]

@@ -4,7 +4,7 @@ defmodule BldgServer.MixProject do
   def project do
     [
       app: :bldg_server,
-      version: "0.1.7",
+      version: "0.2.0",
       elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
