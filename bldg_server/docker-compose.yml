@@ -9,6 +9,9 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: bldg_server_prod
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes: 
+      - db_data:/var/lib/postgresql/data
 
   web:
     image: bldg-server
@@ -24,3 +27,6 @@ services:
       SECRET_KEY_BASE: ${SECRET_KEY_BASE}
     depends_on:
       - database
+
+volumes:
+  db_data:

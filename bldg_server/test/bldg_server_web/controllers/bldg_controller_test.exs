@@ -4,6 +4,9 @@ defmodule BldgServerWeb.BldgControllerTest do
   alias BldgServer.Buildings
   alias BldgServer.Buildings.Bldg
 
+  alias BldgServerWeb.BldgController
+
+
   @create_attrs %{
     address: "g-b(1,2)-l0",
     category: "some category",
@@ -142,6 +145,59 @@ defmodule BldgServerWeb.BldgControllerTest do
       end
     end
   end
+
+  describe "get minimal location" do
+    
+    test "returns min location" do
+      locations = [{2,1}, {3,4}, {1,2}, {5,6}, {1,1}, {1,3}]
+      result = BldgController.get_minimal_location(locations)
+      assert result == {1,1}
+    end
+
+  end
+
+
+
+  describe "get next available location" do
+
+    test "returns next available location" do
+      max_x = 16
+      max_y = 12
+      locations = [{2,1}, {3,4}, {3,1}, {5,6}, {4,1}]
+      start_location = {2,1}
+      result = BldgController.get_next_available_location(locations, start_location, max_x, max_y)
+      assert {5,1} == result
+    end
+
+    test "returns next available location within row" do
+      max_x = 16
+      max_y = 12
+      locations = [{1,1}, {2,1}, {4,1}]
+      start_location = {1,1}
+      result = BldgController.get_next_available_location(locations, start_location, max_x, max_y)
+      assert {3,1} == result
+    end
+
+    test "returns next available location when assorted" do
+      max_x = 16
+      max_y = 12
+      locations = [{10,11}, {9,11}]
+      start_location = {9,11}
+      result = BldgController.get_next_available_location(locations, start_location, max_x, max_y)
+      assert {11,11} == result
+    end
+
+    test "returns place in next row if row is full" do
+      max_x = 16
+      max_y = 12
+      locations = [{14,5}, {15,5}, {16,5}]
+      start_location = {14,5}
+      result = BldgController.get_next_available_location(locations, start_location, max_x, max_y)
+      assert {14,6} == result
+    end
+
+  end
+
 
   defp create_bldg(_) do
     bldg = fixture(:bldg)

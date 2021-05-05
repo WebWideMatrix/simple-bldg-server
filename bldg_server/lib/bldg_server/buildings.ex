@@ -49,7 +49,7 @@ defmodule BldgServer.Buildings do
   """
   def get_bldg!(address), do: Repo.get_by!(Bldg, address: address)
 
-  def get_by_web_url!(url), do: Repo.get_by!(Bldg, web_url: url)
+  def get_by_web_url(url), do: Repo.get_by(Bldg, web_url: url)
 
   def get_similar_entities(flr, entity_type) do
     q = from b in Bldg, 
