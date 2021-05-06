@@ -12,7 +12,9 @@ defmodule BldgServerWeb.Router do
     get "/bldgs/look/:flr", BldgController, :look
     post "/bldgs/build", BldgController, :build
     post "/bldgs/:address/relocate_to/:new_address", BldgController, :relocate
+    post "/batteries/attach", BatteryController, :attach
 
-    resources "/bldgs", BldgController, except: [:new, :edit], param: "address"
+    resources "/bldgs", BldgController, except: [:new, :edit, :create], param: "address"
+    resources "/batteries", BatteryController, except: [:new, :edit, :create], param: "bldg_address"
   end
 end
