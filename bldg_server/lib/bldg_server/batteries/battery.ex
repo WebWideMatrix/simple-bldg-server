@@ -19,6 +19,6 @@ defmodule BldgServer.Batteries.Battery do
   def changeset(battery, attrs) do
     battery
     |> cast(attrs, [:bldg_address, :flr, :callback_url, :is_attached, :direct_only, :battery_type, :battery_version, :battery_vendor])
-    |> validate_required([:bldg_address, :flr, :callback_url, :is_attached, :direct_only, :battery_type, :battery_version, :battery_vendor])
+    |> validate_required([:bldg_address, :flr, :callback_url])
   end
 end
