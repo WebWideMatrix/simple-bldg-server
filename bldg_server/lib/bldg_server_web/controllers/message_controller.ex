@@ -12,6 +12,11 @@ defmodule BldgServerWeb.MessageController do
   end
 
   def say(conn, %{"message" => message_params}) do
+    BldgServerWeb.Endpoint.broadcast!(
+          "chat",
+          "new_message",
+          message_params
+    )
     with {:ok, %Message{} = message} <- Chat.create_message(message_params) do
       conn
       |> put_status(:created)

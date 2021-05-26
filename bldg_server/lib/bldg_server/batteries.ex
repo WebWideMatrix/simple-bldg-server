@@ -21,6 +21,25 @@ defmodule BldgServer.Batteries do
     Repo.all(Battery)
   end
 
+
+  @doc """
+  Returns the list of attached batteries in a given floor.
+
+  ## Examples
+
+      iex> get_batteries_in_floor(flr)
+      [%Battery{}, ...]
+
+  """
+  def get_batteries_in_floor(flr) do
+    q = from b in Battery, where: b.is_attached and b.flr == ^flr
+    Repo.all(q)
+  end
+
+
+
+
+
   @doc """
   Gets a single battery.
 
