@@ -20,5 +20,6 @@ defmodule BldgServer.Batteries.Battery do
     battery
     |> cast(attrs, [:bldg_address, :flr, :callback_url, :is_attached, :direct_only, :battery_type, :battery_version, :battery_vendor])
     |> validate_required([:bldg_address, :flr, :callback_url])
+    |> unique_constraint(:single_attached_battery_in_bldg, name: :single_attached_battery_in_bldg)
   end
 end
