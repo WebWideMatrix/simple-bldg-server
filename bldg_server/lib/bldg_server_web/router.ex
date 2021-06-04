@@ -13,6 +13,7 @@ defmodule BldgServerWeb.Router do
     post "/bldgs/build", BldgController, :build
     post "/bldgs/:address/relocate_to/:new_address", BldgController, :relocate
     post "/batteries/attach", BatteryController, :attach
+    post "/batteries/detach", BatteryController, :detach
     post "/messages/say", MessageController, :say
 
     resources "/bldgs", BldgController, except: [:new, :edit, :create], param: "address"

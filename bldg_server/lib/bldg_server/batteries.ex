@@ -32,7 +32,7 @@ defmodule BldgServer.Batteries do
 
   """
   def get_batteries_in_floor(flr) do
-    q = from b in Battery, where: b.is_attached and b.flr == ^flr
+    q = from b in Battery, where: b.flr == ^flr and b.is_attached
     Repo.all(q)
   end
 
@@ -55,6 +55,29 @@ defmodule BldgServer.Batteries do
 
   """
   def get_battery!(id), do: Repo.get!(Battery, id)
+
+
+
+  @doc """
+  Gets a single battery by it's container bldg's address.
+
+  Raises `Ecto.NoResultsError` if the Battery does not exist.
+
+  ## Examples
+
+      iex> get_battery_by_bldg_address!("g-b(10,20)")
+      %Battery{}
+
+      iex> get_battery_by_bldg_address!("g-b(30,40)")
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_attached_battery_by_bldg_address!(bldg_address) do
+    clauses = [is_attached: :true, bldg_address: bldg_address]
+    Repo.get_by!(Battery, clauses)
+  end
+
+
 
   @doc """
   Creates a battery.
