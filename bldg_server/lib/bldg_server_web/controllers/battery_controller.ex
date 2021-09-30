@@ -13,6 +13,7 @@ defmodule BldgServerWeb.BatteryController do
 
   def attach(conn, %{"battery" => battery_params}) do
     # add is_attached to the params
+    IO.inspect(battery_params)
     battery_attrs = Map.merge(battery_params, %{"is_attached" => :true})
     with {:ok, %Battery{} = battery} <- Batteries.create_battery(battery_attrs) do
       conn
