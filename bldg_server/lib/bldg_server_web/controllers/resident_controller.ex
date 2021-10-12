@@ -53,4 +53,11 @@ defmodule BldgServerWeb.ResidentController do
       send_resp(conn, :no_content, "")
     end
   end
+
+  def look(conn, %{"flr" => flr}) do
+    residents = Residents.list_residents_in_flr(flr)
+    render(conn, "look.json", residents: residents)
+  end
+
 end
+

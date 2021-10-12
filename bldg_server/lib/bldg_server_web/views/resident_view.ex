@@ -10,6 +10,10 @@ defmodule BldgServerWeb.ResidentView do
     %{data: render_one(resident, ResidentView, "resident.json")}
   end
 
+  def render("look.json", %{residents: residents}) do
+    render_many(residents, ResidentView, "resident.json")
+  end
+
   def render("resident.json", %{resident: resident}) do
     %{id: resident.id,
       email: resident.email,
@@ -18,6 +22,7 @@ defmodule BldgServerWeb.ResidentView do
       home_bldg: resident.home_bldg,
       is_online: resident.is_online,
       location: resident.location,
+      flr: resident.flr,
       direction: resident.direction,
       previous_messages: resident.previous_messages,
       other_attributes: resident.other_attributes,

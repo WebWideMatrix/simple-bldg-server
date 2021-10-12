@@ -6,6 +6,7 @@ defmodule BldgServer.Residents.Resident do
     field :alias, :string
     field :direction, :integer
     field :email, :string
+    field :flr, :string
     field :home_bldg, :string
     field :is_online, :boolean, default: false
     field :last_login_at, :naive_datetime
@@ -21,8 +22,8 @@ defmodule BldgServer.Residents.Resident do
   @doc false
   def changeset(resident, attrs) do
     resident
-    |> cast(attrs, [:email, :alias, :name, :home_bldg, :is_online, :location, :direction, :previous_messages, :other_attributes, :session_id, :last_login_at])
-    |> validate_required([:email, :alias, :name, :home_bldg, :location, :direction, :session_id])
+    |> cast(attrs, [:email, :alias, :name, :home_bldg, :is_online, :location, :direction, :previous_messages, :other_attributes, :session_id, :last_login_at, :flr])
+    |> validate_required([:email, :alias, :name, :home_bldg])
     |> unique_constraint(:email)
   end
 end

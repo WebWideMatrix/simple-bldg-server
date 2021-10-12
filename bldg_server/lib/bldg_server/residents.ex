@@ -22,6 +22,16 @@ defmodule BldgServer.Residents do
   end
 
   @doc """
+  Returns all residents inside a given flr.
+
+  Returns empty list if no such resident exists.
+  """
+  def list_residents_in_flr(flr) do
+    q = from r in Resident, where: r.flr == ^flr
+    Repo.all(q)
+  end
+
+  @doc """
   Gets a single resident.
 
   Raises `Ecto.NoResultsError` if the Resident does not exist.

@@ -29,3 +29,6 @@ bldg_server-*.tar
 
 .env
 .env-stack
+
+.DS_Store
+.vscode

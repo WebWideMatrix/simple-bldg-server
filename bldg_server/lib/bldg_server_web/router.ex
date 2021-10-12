@@ -13,6 +13,7 @@ defmodule BldgServerWeb.Router do
     post "/bldgs/build", BldgController, :build
     post "/bldgs/:address/relocate_to/:new_address", BldgController, :relocate
     post "/residents/login", ResidentController, :login
+    get "/residents/look/:flr", ResidentController, :look
 
     resources "/bldgs", BldgController, except: [:new, :edit], param: "address"
     resources "/residents", ResidentController, except: [:new, :edit]
