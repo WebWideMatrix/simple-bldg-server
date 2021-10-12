@@ -42,7 +42,7 @@ defmodule BldgServerWeb.ChatSubscriber do
 
     batteries = ["flr"]
     |> Batteries.get_batteries_in_floor()
-    |> Enum.map(fn b -> send_message_to_battery(b.callback_url, ) end)
+    |> Enum.map(fn b -> send_message_to_battery(b.callback_url, new_message) end)
 
     {:noreply, state}
   end
