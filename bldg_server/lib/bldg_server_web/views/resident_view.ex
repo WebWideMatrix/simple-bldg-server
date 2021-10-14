@@ -23,6 +23,8 @@ defmodule BldgServerWeb.ResidentView do
       is_online: resident.is_online,
       location: resident.location,
       flr: resident.flr,
+      x: resident.x,
+      y: resident.y,
       direction: resident.direction,
       previous_messages: resident.previous_messages,
       other_attributes: resident.other_attributes,

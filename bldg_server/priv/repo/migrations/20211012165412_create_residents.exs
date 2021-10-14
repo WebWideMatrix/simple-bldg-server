@@ -10,6 +10,8 @@ defmodule BldgServer.Repo.Migrations.CreateResidents do
       add :is_online, :boolean, default: false, null: false
       add :location, :string
       add :flr, :string
+      add :x, :integer
+      add :y, :integer
       add :direction, :integer
       add :previous_messages, {:array, :string}
       add :other_attributes, :map
