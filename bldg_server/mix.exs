@@ -4,7 +4,7 @@ defmodule BldgServer.MixProject do
   def project do
     [
       app: :bldg_server,
-      version: "0.2.1",
+      version: "0.3.0",
       elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
@@ -41,7 +41,8 @@ defmodule BldgServer.MixProject do
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:cors_plug, "~> 2.0"}
+      {:cors_plug, "~> 2.0"},
+      { :uuid, "~> 1.1" }
     ]
   end
 
