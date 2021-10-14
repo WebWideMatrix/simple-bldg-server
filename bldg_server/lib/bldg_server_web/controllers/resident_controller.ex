@@ -59,5 +59,20 @@ defmodule BldgServerWeb.ResidentController do
     render(conn, "look.json", residents: residents)
   end
 
+  # TODO bldgs can act as well - consolidate resident & bldg actions
+
+  
+  def act(conn, %{"resident_email" => email, "action_type" => "MOVE", "move_location" => location, "move_x" => x, "move_y" => y}) do
+    resident = Residents.get_resident_by_email!(email)
+    # TODO validate that the new location is free
+
+    with {:ok, %Resident{}} <- Residents.move(resident, location, x, y) do
+      conn
+      |> put_status(:ok)
+      |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
+      |> render("show.json", resident: resident)
+    end
+  end
+
 end
 

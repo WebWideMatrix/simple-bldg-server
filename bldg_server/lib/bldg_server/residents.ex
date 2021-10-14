@@ -134,6 +134,21 @@ defmodule BldgServer.Residents do
   end
 
   @doc """
+  Performs a move action for a resident, following validation of the action.
+  Updates the location, x & y attributes.
+
+  ## Examples
+
+      iex> move(resident, "g-b(14, 25)", 14, 25)
+      {:ok, %Resident{}}
+
+  """
+  def move(%Resident{} = resident, location, x, y) do
+    changes = %{location: location, x: x, y: y}
+    update_resident(resident, changes)
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking resident changes.
 
   ## Examples
