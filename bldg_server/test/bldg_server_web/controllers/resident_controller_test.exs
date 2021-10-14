@@ -140,6 +140,36 @@ defmodule BldgServerWeb.ResidentControllerTest do
 
   end
 
+  describe "resident act - move" do
+    setup [:create_resident]
+
+    test "resident moves when action data is valid", %{conn: conn, resident: %Resident{id: id} = resident} do
+      conn = post(conn, "/v1/residents/act", %{"resident_email" => "some email", "action_type" => "MOVE", "move_location" => "g-b(17,24)-l0-b(10,15)", "move_x" => 10, "move_y" => 15})
+      assert %{"id" => ^id} = json_response(conn, 200)["data"]
+
+      conn = get(conn, Routes.resident_path(conn, :show, id))
+      expected_last_login = DateTime.utc_now()
+      assert %{
+               "id" => id,
+               "alias" => "some alias",
+               "direction" => 42,
+               "email" => "some email",
+               "home_bldg" => "some home_bldg",
+               "is_online" => false,
+               "last_login_at" => expected_last_login,
+               "location" => "g-b(17,24)-l0-b(10,15)",
+               "x" => 10,
+               "y" => 15,
+               "flr" => "g-b(17,24)-l0",
+               "name" => "some name",
+               "other_attributes" => %{},
+               "previous_messages" => [],
+               "session_id" => "7488a646-e31f-11e4-aace-600308960662"
+             } = json_response(conn, 200)["data"]
+    end
+
+  end
+
 
   describe "delete resident" do
     setup [:create_resident]
