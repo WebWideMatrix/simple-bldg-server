@@ -148,6 +148,23 @@ defmodule BldgServer.Residents do
     update_resident(resident, changes)
   end
 
+
+  def append_message_to_list(msg_list, msg) do
+    case msg_list do
+      nil -> [msg]
+      _ -> [msg | msg_list]
+    end
+  end
+
+  def say(%Resident{} = resident, text) do
+    IO.inspect(resident.previous_messages)
+    new_prev_messages = append_message_to_list(resident.previous_messages, text)
+    IO.inspect(new_prev_messages)
+    changes = %{previous_messages: new_prev_messages}
+    IO.inspect(changes)
+    update_resident(resident, changes)
+  end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking resident changes.
 
