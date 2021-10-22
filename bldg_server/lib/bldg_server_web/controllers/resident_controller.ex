@@ -61,7 +61,8 @@ defmodule BldgServerWeb.ResidentController do
 
   # TODO bldgs can act as well - consolidate resident & bldg actions
 
-  
+
+  # MOVE action
   def act(conn, %{"resident_email" => email, "action_type" => "MOVE", "move_location" => location, "move_x" => x, "move_y" => y}) do
     resident = Residents.get_resident_by_email!(email)
     # TODO validate that the new location is free
@@ -73,13 +74,12 @@ defmodule BldgServerWeb.ResidentController do
       |> render("show.json", resident: resident)
     end
   end
-
   
+  # SAY action
   def act(conn, %{"resident_email" => email, "action_type" => "SAY", "say_speaker" => speaker, "say_text" => text, "say_time" => msg_time, "say_flr" => flr, "say_location" => location, "say_mimetype" => msg_mimetype, "say_recipient" => recipient} = msg) do
     resident = Residents.get_resident_by_email!(email)
-    {_, msg_json} = JSON.encode(msg)
 
-    with {:ok, %Resident{}} <- Residents.say(resident, msg_json) do
+    with {:ok, %Resident{}} <- Residents.say(resident, msg) do
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, resident))

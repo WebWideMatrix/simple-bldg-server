@@ -156,10 +156,26 @@ defmodule BldgServer.Residents do
     end
   end
 
-  def say(%Resident{} = resident, text) do
+  
+  def is_command(msg_text), do: String.at(msg_text, 0) == "/"
+
+
+  def say(%Resident{} = resident, msg) do
+    {_, text} = JSON.encode(msg)
+
     new_prev_messages = append_message_to_list(resident.previous_messages, text)
     changes = %{previous_messages: new_prev_messages}
     update_resident(resident, changes)
+
+    # the message may be a command for bldg manipulation, so
+    # broadcast an event for it, so that the command executor can process it
+    if is_command(msg["say_text"]) do
+      BldgServerWeb.Endpoint.broadcast!(
+        "chat",
+        "new_message",
+        msg
+      )
+    end
   end
 
   @doc """
