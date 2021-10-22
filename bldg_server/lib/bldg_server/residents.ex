@@ -157,11 +157,8 @@ defmodule BldgServer.Residents do
   end
 
   def say(%Resident{} = resident, text) do
-    IO.inspect(resident.previous_messages)
     new_prev_messages = append_message_to_list(resident.previous_messages, text)
-    IO.inspect(new_prev_messages)
     changes = %{previous_messages: new_prev_messages}
-    IO.inspect(changes)
     update_resident(resident, changes)
   end
 
