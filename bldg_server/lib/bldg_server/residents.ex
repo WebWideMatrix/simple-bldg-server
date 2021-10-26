@@ -165,7 +165,7 @@ defmodule BldgServer.Residents do
 
     new_prev_messages = append_message_to_list(resident.previous_messages, text)
     changes = %{previous_messages: new_prev_messages}
-    update_resident(resident, changes)
+    result = update_resident(resident, changes)
 
     # the message may be a command for bldg manipulation, so
     # broadcast an event for it, so that the command executor can process it
@@ -176,6 +176,8 @@ defmodule BldgServer.Residents do
         msg
       )
     end
+    
+    result
   end
 
   @doc """

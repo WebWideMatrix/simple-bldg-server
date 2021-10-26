@@ -111,10 +111,14 @@ Given an entity:
     # TODO read from config
 
     %{"flr" => flr} = entity
+    # TODO if no parent is given, place in 'g' level
+
+    # TODO if location is given, don't try to decide based on similar bldgs
+
     # try to find place near entities of the same entity-type
     %{"entity_type" => entity_type} = entity
     similar_bldgs = Buildings.get_similar_entities(flr, entity_type)
-    {x, y} = case similar_bldgs do
+    [x, y] = case similar_bldgs do
       [] -> [:rand.uniform(max_x - 1) + 1, :rand.uniform(max_y - 1) + 1]
       _ -> get_next_location(similar_bldgs, max_x, max_y)
     end
