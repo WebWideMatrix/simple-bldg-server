@@ -47,11 +47,17 @@ defmodule BldgServerWeb.BldgController do
   end
 
   def figure_out_flr(entity) do
-    %{"container_web_url" => container} = entity
-    container_bldg = Buildings.get_by_web_url(container)
-    # TODO check for nil
-    container_address = container_bldg.address
-    Map.put(entity, "flr", "#{container_address}-l0")
+    flr = cond do
+      Map.has_key?(entity, "container_web_url") ->
+        %{"container_web_url" => container} = entity
+        entity_bldg = Buildings.get_by_web_url(container)
+        # TODO handle the case the container bldg doesn't exist
+        "#{entity_bldg.address}-l0"
+      Map.has_key?(entity, "flr") ->
+        Map.get(entity, "flr")
+      true -> "g"
+    end
+    Map.put(entity, "flr", flr)
   end
 
 
@@ -118,8 +124,8 @@ Given an entity:
     # try to find place near entities of the same entity-type
     %{"entity_type" => entity_type} = entity
     similar_bldgs = Buildings.get_similar_entities(flr, entity_type)
-    [x, y] = case similar_bldgs do
-      [] -> [:rand.uniform(max_x - 1) + 1, :rand.uniform(max_y - 1) + 1]
+    {x, y} = case similar_bldgs do
+      [] -> {:rand.uniform(max_x - 1) + 1, :rand.uniform(max_y - 1) + 1}
       _ -> get_next_location(similar_bldgs, max_x, max_y)
     end
     Map.merge(entity, %{"address" => "#{flr}-b(#{x},#{y})", "x" => x, "y" => y})

@@ -39,9 +39,11 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         # create a bldg with the given entity-type & name, inside the given flr & bldg
         # TODO validate that the actor resident/bldg has the sufficient permissions
 
+        # TODO if creating under a given bldg, send its container_web_url instead of flr
+
         data = %{
             entity: %{
-                container_web_url: "https://fromteal.app",
+                flr: msg["say_flr"],
                 web_url: website,
                 name:  name,
                 entity_type:  entity_type,
