@@ -116,19 +116,18 @@ Given an entity:
     max_y = 12
     # TODO read from config
 
-    %{"flr" => flr} = entity
-    # TODO if no parent is given, place in 'g' level
-
-    # TODO if location is given, don't try to decide based on similar bldgs
-
-    # try to find place near entities of the same entity-type
-    %{"entity_type" => entity_type} = entity
-    similar_bldgs = Buildings.get_similar_entities(flr, entity_type)
-    {x, y} = case similar_bldgs do
-      [] -> {:rand.uniform(max_x - 1) + 1, :rand.uniform(max_y - 1) + 1}
-      _ -> get_next_location(similar_bldgs, max_x, max_y)
+    case Map.get(entity, "address") do
+      nil -> 
+        # try to find place near entities of the same entity-type
+        %{"flr" => flr, "entity_type" => entity_type} = entity
+        similar_bldgs = Buildings.get_similar_entities(flr, entity_type)
+        {x, y} = case similar_bldgs do
+          [] -> {:rand.uniform(max_x - 1) + 1, :rand.uniform(max_y - 1) + 1}
+          _ -> get_next_location(similar_bldgs, max_x, max_y)
+        end
+        Map.merge(entity, %{"address" => "#{flr}-b(#{x},#{y})", "x" => x, "y" => y})
+      _ -> entity
     end
-    Map.merge(entity, %{"address" => "#{flr}-b(#{x},#{y})", "x" => x, "y" => y})
     # TODO handle the case where the location is already caught
   end
 
@@ -170,14 +169,9 @@ Given an entity:
     create(conn, %{"bldg" => bldg_params})
   end
 
+
   def relocate(conn, %{"address" => address, "new_address" => new_address}) do
-    # get the last part of the address: "g-b(17,24)-l0-b(11,6)" -> "b(11,6)"
-    coords_token = new_address
-    |> String.split("-")
-    |> List.last()
-    # get the coordinates: "b(11,6)" -> (11,6)
-    [[new_x_s], [new_y_s]] = Regex.scan(~r{\d+}, coords_token)
-    {{new_x, ""}, {new_y, ""}} = {Integer.parse(new_x_s), Integer.parse(new_y_s)}
+    {new_x, new_y} = Buildings.extract_coords(new_address)
     bldg_params = %{"address" => new_address, "x" => new_x, "y" => new_y}
     update(conn, %{"address" => address, "bldg" => bldg_params})
   end

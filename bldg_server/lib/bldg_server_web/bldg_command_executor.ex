@@ -2,6 +2,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
     use GenServer
     require Logger
     alias BldgServer.PubSub
+    alias BldgServer.Buildings
     
   
     def start_link(_) do
@@ -32,7 +33,6 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         |> Finch.request(FinchClient)
         |> IO.inspect()
     end
-        
 
     # create bldg with entity-type, name & website
     def execute_command(["/create", entity_type, "bldg", "with", "name", name, "and", "website", website] = msg_parts, msg) do
@@ -41,9 +41,13 @@ defmodule BldgServerWeb.BldgCommandExecutor do
 
         # TODO if creating under a given bldg, send its container_web_url instead of flr
 
+        {x, y} = Buildings.extract_coords(msg["say_location"])
         data = %{
             entity: %{
                 flr: msg["say_flr"],
+                address: msg["say_location"],
+                x: x,
+                y: y,
                 web_url: website,
                 name:  name,
                 entity_type:  entity_type,
