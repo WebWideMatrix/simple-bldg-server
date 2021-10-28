@@ -139,7 +139,7 @@ defmodule BldgServer.Residents do
 
   ## Examples
 
-      iex> move(resident, "g-b(14, 25)", 14, 25)
+      iex> move(resident, "g/b(14, 25)", 14, 25)
       {:ok, %Resident{}}
 
   """

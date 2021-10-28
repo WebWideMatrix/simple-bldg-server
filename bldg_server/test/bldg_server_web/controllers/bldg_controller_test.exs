@@ -8,7 +8,7 @@ defmodule BldgServerWeb.BldgControllerTest do
 
 
   @create_attrs %{
-    address: "g-b(1,2)-l0",
+    address: "g/b(1,2)/l0",
     category: "some category",
     data: %{},
     entity_type: "some entity_type",
@@ -24,7 +24,7 @@ defmodule BldgServerWeb.BldgControllerTest do
     y: 42
   }
   @update_attrs %{
-    address: "g-b(5,6)-l0",
+    address: "g/b(5,6)/l0",
     category: "some updated category",
     data: %{},
     entity_type: "some updated entity_type",
@@ -66,7 +66,7 @@ defmodule BldgServerWeb.BldgControllerTest do
 
       assert %{
                "id" => id,
-               "address" => "g-b(1,2)-l0",
+               "address" => "g/b(1,2)/l0",
                "category" => "some category",
                "data" => %{},
                "entity_type" => "some entity_type",
@@ -95,16 +95,16 @@ defmodule BldgServerWeb.BldgControllerTest do
     test "renders bldg when data is valid", %{conn: conn, bldg: %Bldg{address: address} = bldg} do
       # TODO bldg_path doesn't return the right URL: it doesn't use the address instead of the id
       #conn = put(conn, Routes.bldg_path(conn, :update, bldg), bldg: @update_attrs)
-      url = "/v1/bldgs/g-b(1,2)-l0"
+      url = "/v1/bldgs/g/b(1,2)/l0"
       conn = put(conn, url, bldg: @update_attrs)
-      assert %{"address" => "g-b(5,6)-l0"} = json_response(conn, 200)["data"]
+      assert %{"address" => "g/b(5,6)/l0"} = json_response(conn, 200)["data"]
 
-      new_url = "/v1/bldgs/g-b(5,6)-l0"
+      new_url = "/v1/bldgs/g/b(5,6)/l0"
       conn = get(conn, new_url)
 
       assert %{
                "id" => id,
-               "address" => "g-b(5,6)-l0",
+               "address" => "g/b(5,6)/l0",
                "category" => "some updated category",
                "data" => %{},
                "entity_type" => "some updated entity_type",
@@ -124,7 +124,7 @@ defmodule BldgServerWeb.BldgControllerTest do
     test "renders errors when data is invalid", %{conn: conn, bldg: bldg} do
       # TODO bldg_path doesn't return the right URL: it doesn't use the address instead of the id
       #conn = put(conn, Routes.bldg_path(conn, :update, bldg), bldg: @invalid_attrs)
-      url = "/v1/bldgs/g-b(1,2)-l0"
+      url = "/v1/bldgs/g/b(1,2)/l0"
       conn = put(conn, url, bldg: @invalid_attrs)
       assert json_response(conn, 422)["errors"] != %{}
     end
@@ -136,7 +136,7 @@ defmodule BldgServerWeb.BldgControllerTest do
     test "deletes chosen bldg", %{conn: conn, bldg: bldg} do
       # TODO bldg_path doesn't return the right URL: it doesn't use the address instead of the id
       #conn = delete(conn, Routes.bldg_path(conn, :delete, bldg))
-      url = "/v1/bldgs/g-b(1,2)-l0"
+      url = "/v1/bldgs/g/b(1,2)/l0"
       conn = delete(conn, url)
       assert response(conn, 204)
 

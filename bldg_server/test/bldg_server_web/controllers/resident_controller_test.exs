@@ -11,8 +11,8 @@ defmodule BldgServerWeb.ResidentControllerTest do
     home_bldg: "some home_bldg",
     is_online: false,
     last_login_at: ~N[2010-04-17 14:00:00],
-    location: "g-b(17,24)-l0-b(4,5)",
-    flr: "g-b(17,24)-l0",
+    location: "g/b(17,24)/l0/b(4,5)",
+    flr: "g/b(17,24)/l0",
     name: "some name",
     other_attributes: %{},
     previous_messages: [],
@@ -25,8 +25,8 @@ defmodule BldgServerWeb.ResidentControllerTest do
     home_bldg: "some updated home_bldg",
     is_online: true,
     last_login_at: ~N[2011-05-18 15:01:01],
-    location: "g-b(17,24)-l0-b(6,8)",
-    flr: "g-b(17,24)-l0",
+    location: "g/b(17,24)/l0/b(6,8)",
+    flr: "g/b(17,24)/l0",
     name: "some updated name",
     other_attributes: %{},
     previous_messages: [],
@@ -65,8 +65,8 @@ defmodule BldgServerWeb.ResidentControllerTest do
                "home_bldg" => "some home_bldg",
                "is_online" => false,
                "last_login_at" => "2010-04-17T14:00:00",
-               "location" => "g-b(17,24)-l0-b(4,5)",
-               "flr" => "g-b(17,24)-l0",
+               "location" => "g/b(17,24)/l0/b(4,5)",
+               "flr" => "g/b(17,24)/l0",
                "name" => "some name",
                "other_attributes" => %{},
                "previous_messages" => [],
@@ -97,8 +97,8 @@ defmodule BldgServerWeb.ResidentControllerTest do
                "home_bldg" => "some updated home_bldg",
                "is_online" => true,
                "last_login_at" => "2011-05-18T15:01:01",
-               "location" => "g-b(17,24)-l0-b(6,8)",
-               "flr" => "g-b(17,24)-l0",
+               "location" => "g/b(17,24)/l0/b(6,8)",
+               "flr" => "g/b(17,24)/l0",
                "name" => "some updated name",
                "other_attributes" => %{},
                "previous_messages" => [],
@@ -129,8 +129,8 @@ defmodule BldgServerWeb.ResidentControllerTest do
                "home_bldg" => "some home_bldg",
                "is_online" => true,
                "last_login_at" => expected_last_login,
-               "location" => "g-b(17,24)-l0-b(4,5)",
-               "flr" => "g-b(17,24)-l0",
+               "location" => "g/b(17,24)/l0/b(4,5)",
+               "flr" => "g/b(17,24)/l0",
                "name" => "some name",
                "other_attributes" => %{},
                "previous_messages" => [],
@@ -144,7 +144,7 @@ defmodule BldgServerWeb.ResidentControllerTest do
     setup [:create_resident]
 
     test "resident moves when action data is valid", %{conn: conn, resident: %Resident{id: id} = resident} do
-      conn = post(conn, "/v1/residents/act", %{"resident_email" => "some email", "action_type" => "MOVE", "move_location" => "g-b(17,24)-l0-b(10,15)", "move_x" => 10, "move_y" => 15})
+      conn = post(conn, "/v1/residents/act", %{"resident_email" => "some email", "action_type" => "MOVE", "move_location" => "g/b(17,24)/l0/b(10,15)", "move_x" => 10, "move_y" => 15})
       assert %{"id" => ^id} = json_response(conn, 200)["data"]
 
       conn = get(conn, Routes.resident_path(conn, :show, id))
@@ -157,10 +157,10 @@ defmodule BldgServerWeb.ResidentControllerTest do
                "home_bldg" => "some home_bldg",
                "is_online" => false,
                "last_login_at" => expected_last_login,
-               "location" => "g-b(17,24)-l0-b(10,15)",
+               "location" => "g/b(17,24)/l0/b(10,15)",
                "x" => 10,
                "y" => 15,
-               "flr" => "g-b(17,24)-l0",
+               "flr" => "g/b(17,24)/l0",
                "name" => "some name",
                "other_attributes" => %{},
                "previous_messages" => [],
