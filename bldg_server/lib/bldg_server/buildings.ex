@@ -122,4 +122,19 @@ defmodule BldgServer.Buildings do
   def change_bldg(%Bldg{} = bldg) do
     Bldg.changeset(bldg, %{})
   end
+
+
+  # UTILS
+
+  def extract_coords(addr) do
+    # get the last part of the address: "g-b(17,24)-l0-b(11,6)" -> "b(11,6)"
+    coords_token = addr
+    |> String.split("-")
+    |> List.last()
+    # get the coordinates: "b(11,6)" -> (11,6)
+    [[x_s], [y_s]] = Regex.scan(~r{\d+}, coords_token)
+    {{x, ""}, {y, ""}} = {Integer.parse(x_s), Integer.parse(y_s)}
+    {x, y}
+  end
+
 end

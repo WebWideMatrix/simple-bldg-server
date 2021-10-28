@@ -11,9 +11,12 @@ defmodule BldgServer.Application do
       # Start the Ecto repository
       BldgServer.Repo,
       # Start the endpoint when the application starts
-      BldgServerWeb.Endpoint
+      BldgServerWeb.Endpoint,
       # Starts a worker by calling: BldgServer.Worker.start_link(arg)
       # {BldgServer.Worker, arg},
+      BldgServerWeb.BldgCommandExecutor,
+      # Start the http client
+      {Finch, name: FinchClient}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
