@@ -52,7 +52,7 @@ defmodule BldgServerWeb.BldgController do
         %{"container_web_url" => container} = entity
         entity_bldg = Buildings.get_by_web_url(container)
         # TODO handle the case the container bldg doesn't exist
-        "#{entity_bldg.address}-l0"
+        "#{entity_bldg.address}#{Buildings.address_delimiter}l0"
       Map.has_key?(entity, "flr") ->
         Map.get(entity, "flr")
       true -> "g"
@@ -148,8 +148,8 @@ Given an entity:
     }
     Creates a building matching the entity, e.g.:
     "bldg": {
-      "address": "g-b(17,24)-l0-b(55,135)",
-      "flr": "g-b(17,24)-l0",
+      "address": "g/b(17,24)/l0/b(55,135)",
+      "flr": "g/b(17,24)/l0",
       "x": 55,
       "y": 135,
       "is_composite": false,

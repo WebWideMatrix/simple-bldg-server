@@ -8,6 +8,9 @@ defmodule BldgServer.Buildings do
 
   alias BldgServer.Buildings.Bldg
 
+
+  def address_delimiter, do: "/"
+
   @doc """
   Returns the list of bldgs.
 
@@ -127,12 +130,12 @@ defmodule BldgServer.Buildings do
   # UTILS
 
   def extract_coords(addr) do
-    # get the last part of the address: "g-b(17,24)-l0-b(11,6)" -> "b(11,6)"
-    coords_token = addr
-    |> String.split("-")
+    # get the coords from the last part of the address: "g/b(17,24)/l0/b(-11,6)" -> ["-11","6]
+    [x_s, y_s] = addr
+    |> String.split(address_delimiter)
     |> List.last()
-    # get the coordinates: "b(11,6)" -> (11,6)
-    [[x_s], [y_s]] = Regex.scan(~r{\d+}, coords_token)
+    |> String.slice(2..-2)
+    |> String.split(",")
     {{x, ""}, {y, ""}} = {Integer.parse(x_s), Integer.parse(y_s)}
     {x, y}
   end

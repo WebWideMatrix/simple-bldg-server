@@ -6,7 +6,7 @@ defmodule BldgServer.BuildingsTest do
   describe "bldgs" do
     alias BldgServer.Buildings.Bldg
 
-    @addr "g-b(1,2)-l0"
+    @addr "g/b(1,2)/l0"
     @valid_attrs %{address: @addr, category: "some category", data: %{}, entity_type: "some entity_type", flr: "some flr", is_composite: true, name: "some name", picture_url: "some picture_url", state: "some state", summary: "some summary", tags: [], web_url: "some web_url", x: 42, y: 42}
     @update_attrs %{address: "some updated address", category: "some updated category", data: %{}, entity_type: "some updated entity_type", flr: "some updated flr", is_composite: false, name: "some updated name", picture_url: "some updated picture_url", state: "some updated state", summary: "some updated summary", tags: [], web_url: "some updated web_url", x: 43, y: 43}
     @invalid_attrs %{address: nil, category: nil, data: nil, entity_type: nil, flr: nil, is_composite: nil, name: nil, picture_url: nil, state: nil, summary: nil, tags: nil, web_url: nil, x: nil, y: nil}
