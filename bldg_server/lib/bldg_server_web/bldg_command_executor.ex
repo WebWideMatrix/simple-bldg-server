@@ -54,8 +54,34 @@ defmodule BldgServerWeb.BldgCommandExecutor do
                 state:  "approved"
             }
         }
-        url = "http://localhost:4000/v1/bldgs/build"
+        url = "https://api.w2m.site/v1/bldgs/build"
         invoke_bldg_server_api(url, data)
+    end
+
+
+    # create bldg with entity-type, name & summary
+    def execute_command(["/create", entity_type, "bldg", "with", "name", name, "and", "summary" | summary_tokens] = msg_parts, msg) do
+      # create a bldg with the given entity-type, name & summary, inside the given flr & bldg
+      # TODO validate that the actor resident/bldg has the sufficient permissions
+
+      # TODO if creating under a given bldg, send its container_web_url instead of flr
+
+      {x, y} = Buildings.extract_coords(msg["say_location"])
+      data = %{
+          entity: %{
+              flr: msg["say_flr"],
+              address: msg["say_location"],
+              x: x,
+              y: y,
+              web_url: "https://fromteal.app/#{msg["say_location"]}/#{entity_type}/#{name}",
+              name:  name,
+              entity_type:  entity_type,
+              summary:  Enum.join(summary_tokens, " "),
+              state:  "approved"
+          }
+      }
+      url = "https://api.w2m.site/v1/bldgs/build"
+      invoke_bldg_server_api(url, data)
     end
 
     #def handle_info({sender, message, flr}, state) do
