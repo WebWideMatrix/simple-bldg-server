@@ -23,17 +23,6 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         String.split(msg_text, " ")
     end
 
-
-    def invoke_bldg_server_api(url, payload) do
-        Logger.info("About to invoke bldg server URL at: #{url}")
-        header_key = "content-type"
-        header_val = "application/json"
-        {_, payload_json} = Jason.encode(payload)
-        Finch.build(:post, url, [{header_key, header_val}], payload_json) 
-        |> Finch.request(FinchClient)
-        |> IO.inspect()
-    end
-
     # create bldg with entity-type, name & website
     def execute_command(["/create", entity_type, "bldg", "with", "name", name, "and", "website", website] = msg_parts, msg) do
         # create a bldg with the given entity-type & name, inside the given flr & bldg
@@ -42,20 +31,18 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         # TODO if creating under a given bldg, send its container_web_url instead of flr
 
         {x, y} = Buildings.extract_coords(msg["say_location"])
-        data = %{
-            entity: %{
-                flr: msg["say_flr"],
-                address: msg["say_location"],
-                x: x,
-                y: y,
-                web_url: website,
-                name:  name,
-                entity_type:  entity_type,
-                state:  "approved"
-            }
+        entity = %{
+          "flr" => msg["say_flr"],
+          "address" => msg["say_location"],
+          "x" => x,
+          "y" => y,
+          "web_url" => website,
+          "name" => name,
+          "entity_type" => entity_type,
+          "state" =>  "approved"
         }
-        url = "https://api.w2m.site/v1/bldgs/build"
-        invoke_bldg_server_api(url, data)
+        bldg = Buildings.build(entity)
+        |> Buildings.create_bldg()
     end
 
 
@@ -67,21 +54,19 @@ defmodule BldgServerWeb.BldgCommandExecutor do
       # TODO if creating under a given bldg, send its container_web_url instead of flr
 
       {x, y} = Buildings.extract_coords(msg["say_location"])
-      data = %{
-          entity: %{
-              flr: msg["say_flr"],
-              address: msg["say_location"],
-              x: x,
-              y: y,
-              web_url: "https://fromteal.app/#{msg["say_location"]}/#{entity_type}/#{name}",
-              name:  name,
-              entity_type:  entity_type,
-              summary:  Enum.join(summary_tokens, " "),
-              state:  "approved"
-          }
+      entity = %{
+        "flr" => msg["say_flr"],
+        "address" => msg["say_location"],
+        "x" => x,
+        "y" => y,
+        "web_url" => "https://fromteal.app/#{msg["say_location"]}/#{entity_type}/#{name}",
+        "name" =>  name,
+        "entity_type" =>  entity_type,
+        "summary" =>  Enum.join(summary_tokens, " "),
+        "state" =>  "approved"
       }
-      url = "https://api.w2m.site/v1/bldgs/build"
-      invoke_bldg_server_api(url, data)
+      bldg = Buildings.build(entity)
+      |> Buildings.create_bldg()
     end
 
     #def handle_info({sender, message, flr}, state) do
