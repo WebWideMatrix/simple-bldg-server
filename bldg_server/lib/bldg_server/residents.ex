@@ -118,7 +118,7 @@ defmodule BldgServer.Residents do
 
   @doc """
   Logs in a resident, following authentication.
-  - location would be the last known location or home bldg. 
+  - location would be the last known location or home bldg.
   - should generate a new session_id
   - update last_login_at & is_online
 
@@ -129,7 +129,7 @@ defmodule BldgServer.Residents do
 
   """
   def login(%Resident{} = resident) do
-    changes = %{is_online: true, last_login_at: DateTime.utc_now(), sesion_id: UUID.uuid4()} 
+    changes = %{is_online: true, last_login_at: DateTime.utc_now(), sesion_id: UUID.uuid4()}
     update_resident(resident, changes)
   end
 
@@ -149,6 +149,12 @@ defmodule BldgServer.Residents do
   end
 
 
+  def change_dir(%Resident{} = resident, direction) do
+    changes = %{direction: direction}
+    update_resident(resident, changes)
+  end
+
+
   def append_message_to_list(msg_list, msg) do
     case msg_list do
       nil -> [msg]
@@ -156,7 +162,7 @@ defmodule BldgServer.Residents do
     end
   end
 
-  
+
   def is_command(msg_text), do: String.at(msg_text, 0) == "/"
 
 
@@ -176,7 +182,7 @@ defmodule BldgServer.Residents do
         msg
       )
     end
-    
+
     result
   end
 
