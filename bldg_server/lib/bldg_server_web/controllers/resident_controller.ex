@@ -79,7 +79,7 @@ defmodule BldgServerWeb.ResidentController do
   end
 
   # TURN action
-  def act(conn, %{"resident_email" => email, "action_type" => "TURN", "direction" => direction}) do
+  def act(conn, %{"resident_email" => email, "action_type" => "TURN", "turn_direction" => direction}) do
     resident = Residents.get_resident_by_email!(email)
 
     with {:ok, %Resident{}} <- Residents.change_dir(resident, direction) do
