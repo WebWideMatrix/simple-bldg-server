@@ -69,6 +69,29 @@ defmodule BldgServerWeb.BldgCommandExecutor do
       |> Buildings.create_bldg()
     end
 
+    # create bldg with entity-type, name, website & picture
+    def execute_command(["/create", entity_type, "bldg", "with", "name", name, "and", "website", website, "and", "picture", picture_url] = msg_parts, msg) do
+        # create a bldg with the given entity-type, name, website & picture url, inside the given flr & bldg
+        # TODO validate that the actor resident/bldg has the sufficient permissions
+
+        # TODO if creating under a given bldg, send its container_web_url instead of flr
+
+        {x, y} = Buildings.extract_coords(msg["say_location"])
+        entity = %{
+          "flr" => msg["say_flr"],
+          "address" => msg["say_location"],
+          "x" => x,
+          "y" => y,
+          "web_url" => website,
+          "name" => name,
+          "entity_type" => entity_type,
+          "picture_url" => picture_url,
+          "state" =>  "approved"
+        }
+        bldg = Buildings.build(entity)
+        |> Buildings.create_bldg()
+    end
+
     #def handle_info({sender, message, flr}, state) do
     def handle_info(%{event: "new_message", payload: new_message}, state) do
       #Logger.info("chat message received at #{flr} from #{sender}: #{message}")
