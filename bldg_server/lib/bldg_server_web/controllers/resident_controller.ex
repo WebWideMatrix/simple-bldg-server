@@ -74,6 +74,18 @@ defmodule BldgServerWeb.ResidentController do
       |> render("show.json", resident: resident)
     end
   end
+
+  # TURN action
+  def act(conn, %{"resident_email" => email, "action_type" => "TURN", "turn_direction" => direction}) do
+    resident = Residents.get_resident_by_email!(email)
+
+    with {:ok, %Resident{}} <- Residents.change_dir(resident, direction) do
+      conn
+      |> put_status(:ok)
+      |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
+      |> render("show.json", resident: resident)
+    end
+  end
   
   # SAY action
   def act(conn, %{"resident_email" => email, "action_type" => "SAY", "say_speaker" => speaker, "say_text" => text, "say_time" => msg_time, "say_flr" => flr, "say_location" => location, "say_mimetype" => msg_mimetype, "say_recipient" => recipient} = msg) do

@@ -148,6 +148,10 @@ defmodule BldgServer.Residents do
     update_resident(resident, changes)
   end
 
+  def change_dir(%Resident{} = resident, direction) do
+    changes = %{direction: direction}
+    update_resident(resident, changes)
+  end
 
   def append_message_to_list(msg_list, msg) do
     case msg_list do
