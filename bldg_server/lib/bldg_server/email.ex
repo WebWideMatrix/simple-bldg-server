@@ -10,7 +10,7 @@ defmodule BldgServer.Email do
     |> to(resident_email)
     |> from("noreply@api.w2m.site")
     |> subject("Login verification")
-    |> text_body("Hi, please click on the following link, in order to verify your email address: ${verification_url}")
+    |> text_body("Hi, please click on the following link, in order to verify your email address: #{verification_url}")
   end
 
 end
