@@ -23,6 +23,9 @@ defmodule BldgServerWeb.ResidentController do
     end
   end
 
+  def verify_email(conn, params) do
+    # We'll update this later
+  end
 
   def create(conn, %{"resident" => resident_params}) do
     with {:ok, %Resident{} = resident} <- Residents.create_resident(resident_params) do

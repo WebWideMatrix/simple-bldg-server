@@ -129,6 +129,11 @@ defmodule BldgServer.Residents do
 
   """
   def login(%Resident{} = resident) do
+
+    token = BldgServer.Token.generate_login_token(resident)
+    verification_url = user_url(conn, :verify_email, token: token)
+    BldgServer.Notifications.send_login_verification_email(resident, verification_url)
+
     changes = %{is_online: true, last_login_at: DateTime.utc_now(), sesion_id: UUID.uuid4()} 
     update_resident(resident, changes)
   end
