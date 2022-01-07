@@ -24,7 +24,21 @@ defmodule BldgServerWeb.ResidentController do
   end
 
   def verify_email(conn, params) do
-    # We'll update this later
+    with {:ok, resident_id} <- BldgServer.Token.verify_login_token(token),
+         {:ok, %Resident{verified: false} = resident} <- Residents.by_id(resident_id) do
+      Residents.mark_as_verified(resident)
+      render(conn, "verified.html")
+    else
+      _ -> render(conn, "invalid_token.html")
+    end
+  end
+
+  def verify_email(conn, _) do
+    # If there is no token in our params, tell the user they've provided
+    # an invalid token or expired token
+    conn
+    |> put_flash(:error, "The verification link is invalid.")
+    |> redirect(to: "/")
   end
 
   def create(conn, %{"resident" => resident_params}) do
