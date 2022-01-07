@@ -20,7 +20,7 @@ defmodule BldgServer.MixProject do
   def application do
     [
       mod: {BldgServer.Application, []},
-      extra_applications: [:logger, :runtime_tools, :ssl]
+      extra_applications: [:logger, :runtime_tools, :ssl, :bamboo]
     ]
   end
 
@@ -44,7 +44,9 @@ defmodule BldgServer.MixProject do
       {:cors_plug, "~> 2.0"},
       { :uuid, "~> 1.1" },
       {:json, "~> 1.4"},
-      {:finch, "~> 0.7"}
+      {:finch, "~> 0.7"},
+      {:bamboo, "~> 0.7"},
+      {:bamboo_smtp, "~> 1.2.1"}
     ]
   end
 
