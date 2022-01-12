@@ -128,9 +128,9 @@ defmodule BldgServer.Residents do
       {:ok, %Resident{}}
 
   """
-  def login(%Resident{} = resident) do
+  def login(%Resident{} = resident, ip_addr) do
 
-    token = BldgServer.Token.generate_login_token(resident)
+    token = BldgServer.Token.generate_login_token(resident, ip_addr)
     verification_url = user_url(conn, :verify_email, token: token)
     BldgServer.Notifications.send_login_verification_email(resident, verification_url)
 
