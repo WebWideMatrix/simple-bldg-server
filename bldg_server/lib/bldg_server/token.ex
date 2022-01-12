@@ -3,6 +3,8 @@ defmodule BldgServer.Token do
   Handles creating and validating tokens.
   """
 
+    alias BldgServer.Residents.Resident
+
   # TODO use env variable
   @email_verification_salt "email verification salt"
 
