@@ -72,7 +72,7 @@ defmodule BldgServer.Events do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_bldg(%Event{} = event) do
+  def delete_event(%Event{} = event) do
     Repo.delete(event)
   end
 

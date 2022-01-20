@@ -99,7 +99,8 @@ defmodule BldgServerWeb.ResidentController do
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
       |> render("show.json", resident: resident)
-      # TODO: Create an event for this SAY action
+
+      Events.create_event(%{bldg: "", message: text, resident: email})
     end
   end
 
