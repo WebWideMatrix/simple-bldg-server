@@ -95,12 +95,12 @@ defmodule BldgServerWeb.ResidentController do
     resident = Residents.get_resident_by_email!(email)
 
     with {:ok, %Resident{}} <- Residents.say(resident, msg) do
+      # IO.inspect(msg)
+      Events.create_event(%{bldg: location, message: text, resident: email})
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
       |> render("show.json", resident: resident)
-
-      Events.create_event(%{bldg: "", message: text, resident: email})
     end
   end
 
