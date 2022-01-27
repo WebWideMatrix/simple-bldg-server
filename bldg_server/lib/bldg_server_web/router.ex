@@ -18,6 +18,6 @@ defmodule BldgServerWeb.Router do
     post "/residents/act", ResidentController, :act
     
     resources "/bldgs", BldgController, except: [:new, :edit], param: "address"
-    resources "/residents", ResidentController, except: [:new, :edit]
+    resources "/residents", ResidentController, except: [:new, :edit, :index]
   end
 end

@@ -15,11 +15,12 @@ defmodule BldgServerWeb.ResidentController do
     resident = Residents.get_resident_by_email!(email)
     # TODO perform authentication based on email verification
     ip_addr = conn.remote_ip |> :inet_parse.ntoa |> to_string()
+    
     with {:ok, %Resident{}} <- Residents.login(resident, ip_addr) do
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
-      |> render("show.json", resident: resident)
+      |> render("show.json", resident: %Resident{email: resident.email})
     end
   end
 
