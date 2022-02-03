@@ -7,6 +7,8 @@ defmodule BldgServerWeb.ResidentController do
   alias BldgServer.Events
   alias BldgServer.Events.Event
 
+  alias BldgServerWeb.EventChannel
+
   action_fallback BldgServerWeb.FallbackController
 
   def index(conn, _params) do
@@ -96,7 +98,10 @@ defmodule BldgServerWeb.ResidentController do
 
     with {:ok, %Resident{}} <- Residents.say(resident, msg) do
       # IO.inspect(msg)
-      Events.create_event(%{bldg: location, message: text, resident: email})
+      ev = %{bldg: location, message: text, resident: email}
+      Events.create_event(ev)
+      BldgServerWeb.Endpoint.broadcast("event:#{location}", "event", ev)
+
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
