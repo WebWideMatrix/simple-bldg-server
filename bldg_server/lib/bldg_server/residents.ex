@@ -7,6 +7,7 @@ defmodule BldgServer.Residents do
   alias BldgServer.Repo
 
   alias BldgServer.Residents.Resident
+  alias BldgServer.ResidentsAuth
 
   @doc """
   Returns the list of residents.
@@ -129,11 +130,11 @@ defmodule BldgServer.Residents do
 
   """
   def login(%Resident{} = resident, ip_addr) do
-
-    # token = BldgServer.Token.generate_login_token(resident, ip_addr)
+    {_, session} = ResidentsAuth.create_session(%{"session_id" => UUID.uuid4(), "resident_id" => resident.id, "email" => resident.email, "status" => ResidentsAuth.pending_verification, "ip_address" => ip_addr, "last_activity_time" => DateTime.utc_now()})
+    token = BldgServer.Token.generate_login_token(session.session_id)
     # verification_url = "TODO generate or hard code the url" # user_url(conn, :verify_email, token: token)
     # BldgServer.Notifications.send_login_verification_email(resident, verification_url)
-
+  
     changes = %{is_online: true, last_login_at: DateTime.utc_now(), sesion_id: UUID.uuid4()} 
     update_resident(resident, changes)
   end

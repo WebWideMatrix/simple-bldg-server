@@ -8,8 +8,8 @@ defmodule BldgServer.Token do
   # TODO use env variable
   @email_verification_salt "email verification salt"
 
-  def generate_login_token(%Resident{id: resident_id}) do
-    Phoenix.Token.sign(BldgServer.Endpoint, @email_verification_salt, resident_id)
+  def generate_login_token(session_id) do
+    Phoenix.Token.sign(BldgServerWeb.Endpoint, @email_verification_salt, session_id)
   end
 
   def verify_login_token(token) do

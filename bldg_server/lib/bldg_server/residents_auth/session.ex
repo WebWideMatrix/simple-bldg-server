@@ -2,12 +2,13 @@ defmodule BldgServer.ResidentsAuth.Session do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:session_id, :binary_id, autogenerate: true}
+
   schema "sessions" do
     field :email, :string
     field :ip_address, :string
     field :last_activity_time, :naive_datetime
     field :resident_id, :integer
-    field :session_id, Ecto.UUID
     field :status, :string
 
     timestamps()

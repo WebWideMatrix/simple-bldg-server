@@ -8,6 +8,8 @@ defmodule BldgServer.ResidentsAuth do
 
   alias BldgServer.ResidentsAuth.Session
 
+  def pending_verification, do: "PENDING-VERIFICATION"
+
   @doc """
   Returns the list of sessions.
 
@@ -50,6 +52,7 @@ defmodule BldgServer.ResidentsAuth do
 
   """
   def create_session(attrs \\ %{}) do
+    IO.inspect(attrs)
     %Session{}
     |> Session.changeset(attrs)
     |> Repo.insert()

@@ -2,8 +2,8 @@ defmodule BldgServer.Repo.Migrations.CreateSessions do
   use Ecto.Migration
 
   def change do
-    create table(:sessions) do
-      add :session_id, :uuid
+    create table(:sessions, primary_key: false) do
+      add :session_id, :uuid, primary_key: true
       add :resident_id, :integer
       add :email, :string
       add :status, :string
