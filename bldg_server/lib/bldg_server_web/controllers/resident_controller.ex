@@ -12,11 +12,8 @@ defmodule BldgServerWeb.ResidentController do
   end
 
   def login(conn, %{"email" => email}) do
-    resident = Residents.get_resident_by_email!(email)
-    # TODO perform authentication based on email verification
-    ip_addr = conn.remote_ip |> :inet_parse.ntoa |> to_string()
-    
-    with {:ok, %Resident{}} <- Residents.login(resident, ip_addr) do
+    resident = Residents.get_resident_by_email!(email)    
+    with {:ok, %Resident{}} <- Residents.login(conn, resident) do
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
