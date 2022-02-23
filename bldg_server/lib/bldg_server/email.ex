@@ -5,10 +5,14 @@ defmodule BldgServer.Email do
 
   use Bamboo.Phoenix, view: BldgServer.EmailView
 
+  @reply_to "dibaunaumh@gmail.com"
+  @from "dibaunaumh@gmail.com"
+
+
   def login_verification_email(email_address, verification_url) do
-    new_email()
+    IO.inspect(email_address)
+    base_email()
     |> to(email_address)
-    |> from("noreply@api.w2m.site")
     |> subject("Login verification")
     |> text_body("Hi, please click on the following link to verify your email address: #{verification_url}")
   end
@@ -20,4 +24,10 @@ defmodule BldgServer.Email do
 
   # TODO use views (see https://phoenixframework.readme.io/docs/sending-email)
 
+
+  defp base_email() do
+    new_email()
+    |> put_header("Reply-To", @reply_to)
+    |> from(@from)
+  end
 end
