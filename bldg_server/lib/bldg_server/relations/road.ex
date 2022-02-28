@@ -6,6 +6,10 @@ defmodule BldgServer.Relations.Road do
     field :flr, :string
     field :from_address, :string
     field :to_address, :string
+    field :from_x, :integer
+    field :from_y, :integer
+    field :to_x, :integer
+    field :to_y, :integer
 
     timestamps()
   end

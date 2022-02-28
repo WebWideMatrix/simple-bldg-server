@@ -15,6 +15,7 @@ defmodule BldgServerWeb.Router do
     post "/residents/login", ResidentController, :login
     get "/residents/look/:flr", ResidentController, :look
     post "/residents/act", ResidentController, :act
+    get "/roads/look/:flr", RoadController, :look
     
     resources "/bldgs", BldgController, except: [:new, :edit], param: "address"
     resources "/residents", ResidentController, except: [:new, :edit]

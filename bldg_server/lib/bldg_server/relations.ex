@@ -22,6 +22,16 @@ defmodule BldgServer.Relations do
   end
 
   @doc """
+  Returns all roads inside a given flr.
+
+  Returns empty list if no such road exists.
+  """
+  def list_roads_in_flr(flr) do
+    q = from r in Road, where: r.flr == ^flr
+    Repo.all(q)
+  end
+
+  @doc """
   Gets a single road.
 
   Raises `Ecto.NoResultsError` if the Road does not exist.

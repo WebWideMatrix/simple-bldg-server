@@ -40,4 +40,10 @@ defmodule BldgServerWeb.RoadController do
       send_resp(conn, :no_content, "")
     end
   end
+
+  def look(conn, %{"flr" => flr}) do
+    roads = Relations.list_roads_in_flr(flr)
+    render(conn, "look.json", roads: roads)
+  end
+
 end
