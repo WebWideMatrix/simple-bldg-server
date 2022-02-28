@@ -18,5 +18,6 @@ defmodule BldgServerWeb.Router do
     
     resources "/bldgs", BldgController, except: [:new, :edit], param: "address"
     resources "/residents", ResidentController, except: [:new, :edit]
+    resources "/roads", RoadController, except: [:new, :edit]
   end
 end
