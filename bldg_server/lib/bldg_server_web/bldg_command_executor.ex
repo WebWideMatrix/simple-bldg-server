@@ -3,6 +3,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
     require Logger
     alias BldgServer.PubSub
     alias BldgServer.Buildings
+    alias BldgServer.Relations
     
   
     def start_link(_) do
@@ -21,6 +22,30 @@ defmodule BldgServerWeb.BldgCommandExecutor do
 
     def parse_command(msg_text) do
         String.split(msg_text, " ")
+    end
+
+    # create road between 2 bldgs (given using their websites)
+    def execute_command(["/create", "road", "between", website1, "and", website2] = msg_parts, msg) do
+        # create a road between the given bldgs, inside the given flr
+        # TODO validate that the actor resident/bldg has the sufficient permissions
+        # TODO return proper errors
+
+        bldg1 = Buildings.get_by_web_url(website1)
+        from_addr = bldg1.address
+        {from_x, from_y} = Buildings.extract_coords(from_addr)
+        bldg2 = Buildings.get_by_web_url(website2)
+        to_addr = bldg2.address
+        {to_x, to_y} = Buildings.extract_coords(to_addr)
+        road = %{
+          "flr" => msg["say_flr"],
+          "from_address" => from_addr,
+          "to_address" => to_addr,
+          "from_x" => from_x,
+          "from_y" => from_y,
+          "to_x" => to_x,
+          "to_y" => to_y
+        }
+        Relations.create_road(road)
     end
 
     # create bldg with entity-type, name & website
