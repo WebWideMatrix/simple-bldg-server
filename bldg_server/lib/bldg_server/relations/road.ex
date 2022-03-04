@@ -17,7 +17,7 @@ defmodule BldgServer.Relations.Road do
   @doc false
   def changeset(road, attrs) do
     road
-    |> cast(attrs, [:flr, :from_address, :to_address])
-    |> validate_required([:flr, :from_address, :to_address])
+    |> cast(attrs, [:flr, :from_address, :to_address, :from_x, :from_y, :to_x, :to_y])
+    |> validate_required([:flr, :from_address, :to_address, :from_x, :from_y, :to_x, :to_y])
   end
 end
