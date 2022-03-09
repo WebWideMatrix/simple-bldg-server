@@ -140,6 +140,17 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         |> Buildings.create_bldg()
     end
 
+    # move bldg
+    def execute_command(["/move", "bldg", website, "here"] = msg_parts, msg) do
+      # update the location of the bldg with the given website to the say location
+      # TODO validate that the actor resident/bldg has the sufficient permissions
+      # TODO composite bldgs should update the location of their children bldgs as well
+
+      {x, y} = Buildings.extract_coords(msg["say_location"])
+      bldg = Buildings.get_by_web_url(website)
+      |> Buildings.update_bldg(%{"address" => msg["say_location"], "x" => x, "y" => y})
+    end
+
     #def handle_info({sender, message, flr}, state) do
     def handle_info(%{event: "new_message", payload: new_message}, state) do
       #Logger.info("chat message received at #{flr} from #{sender}: #{message}")
