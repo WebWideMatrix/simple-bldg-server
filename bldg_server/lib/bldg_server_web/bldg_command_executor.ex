@@ -94,6 +94,29 @@ defmodule BldgServerWeb.BldgCommandExecutor do
       |> Buildings.create_bldg()
     end
 
+    # create bldg with entity-type, name, website & summary
+    def execute_command(["/create", entity_type, "bldg", "with", "name", name, "and", "website", website, "and", "summary" | summary_tokens] = msg_parts, msg) do
+      # create a bldg with the given entity-type, name, website & summary, inside the given flr & bldg
+      # TODO validate that the actor resident/bldg has the sufficient permissions
+
+      # TODO if creating under a given bldg, send its container_web_url instead of flr
+
+      {x, y} = Buildings.extract_coords(msg["say_location"])
+      entity = %{
+        "flr" => msg["say_flr"],
+        "address" => msg["say_location"],
+        "x" => x,
+        "y" => y,
+        "web_url" => website,
+        "name" =>  name,
+        "entity_type" =>  entity_type,
+        "summary" =>  Enum.join(summary_tokens, " "),
+        "state" =>  "approved"
+      }
+      bldg = Buildings.build(entity)
+      |> Buildings.create_bldg()
+    end
+
     # create bldg with entity-type, name, website & picture
     def execute_command(["/create", entity_type, "bldg", "with", "name", name, "and", "website", website, "and", "picture", picture_url] = msg_parts, msg) do
         # create a bldg with the given entity-type, name, website & picture url, inside the given flr & bldg
