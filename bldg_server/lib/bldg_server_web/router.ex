@@ -19,11 +19,7 @@ defmodule BldgServerWeb.Router do
     get "/roads/look/:flr", RoadController, :look
     
     resources "/bldgs", BldgController, except: [:new, :edit], param: "address"
-<<<<<<< HEAD
-    resources "/residents", ResidentController, except: [:new, :edit, :index]
-=======
     resources "/residents", ResidentController, except: [:new, :edit]
     resources "/roads", RoadController, except: [:new, :edit]
->>>>>>> master
   end
 end
