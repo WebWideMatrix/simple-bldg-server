@@ -16,8 +16,14 @@ defmodule BldgServerWeb.Router do
     get "/residents/verify", ResidentController, :verify_email
     get "/residents/look/:flr", ResidentController, :look
     post "/residents/act", ResidentController, :act
+    get "/roads/look/:flr", RoadController, :look
     
     resources "/bldgs", BldgController, except: [:new, :edit], param: "address"
+<<<<<<< HEAD
     resources "/residents", ResidentController, except: [:new, :edit, :index]
+=======
+    resources "/residents", ResidentController, except: [:new, :edit]
+    resources "/roads", RoadController, except: [:new, :edit]
+>>>>>>> master
   end
 end
