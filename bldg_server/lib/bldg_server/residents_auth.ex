@@ -37,7 +37,16 @@ defmodule BldgServer.ResidentsAuth do
       ** (Ecto.NoResultsError)
 
   """
-  def get_session!(id), do: Repo.get!(Session, id)
+  def get_session!(id) do
+    Repo.get!(Session, id)
+  end
+
+
+  def get_session_by_session_id!(session_id) do 
+    IO.puts("looking up session by session id: #{session_id}")
+    Repo.get_by!(Session, session_id: session_id)
+  end
+
 
   @doc """
   Creates a session.

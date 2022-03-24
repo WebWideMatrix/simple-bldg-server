@@ -3,6 +3,9 @@ defmodule BldgServerWeb.ResidentController do
 
   alias BldgServer.Residents
   alias BldgServer.Residents.Resident
+  alias BldgServer.Token
+  alias BldgServer.ResidentsAuth
+  alias BldgServer.ResidentsAuth.Session
 
   action_fallback BldgServerWeb.FallbackController
 
@@ -21,25 +24,26 @@ defmodule BldgServerWeb.ResidentController do
     end
   end
 
-  # TODO add token param
-  # def verify_email(conn, params) do
-  #   # with {:ok, resident_id} <- BldgServer.Token.verify_login_token(token),
-  #   #      {:ok, %Resident{verified: false} = resident} <- Residents.by_id(resident_id) do
-  #   with {:ok, resident_id} <- BldgServer.Token.verify_login_token(token),
-  #        {:ok, %Resident{} = resident} <- Residents.by_id(resident_id) do
-  #     Residents.mark_as_verified(resident)
-  #     render(conn, "verified.html")
-  #   else
-  #     _ -> render(conn, "invalid_token.html")
-  #   end
-  # end
+  def verify_email(conn, %{"token" => token}) do
+    # with {:ok, resident_id} <- BldgServer.Token.verify_login_token(token),
+    #      {:ok, %Resident{verified: false} = resident} <- Residents.by_id(resident_id) do
+    with {:ok, session_id} <- BldgServer.Token.verify_login_token(token),
+          session <- ResidentsAuth.get_session_by_session_id!(session_id),
+          resident <- Residents.get_resident!(session.resident_id) do
+          IO.inspect(session)
+          IO.inspect(resident)
+          Residents.mark_as_verified(resident)
+          send_resp(conn, 200, "Welcome to fromTeal!")
+    else
+      _ -> send_resp(conn, 400, "Could not decript token.")
+    end
+  end
 
   def verify_email(conn, _) do
     # If there is no token in our params, tell the user they've provided
     # an invalid token or expired token
     conn
-    |> put_flash(:error, "The verification link is invalid.")
-    |> redirect(to: "/")
+    |> send_resp(400, "The verification link is invalid.")
   end
 
   def create(conn, %{"resident" => resident_params}) do
