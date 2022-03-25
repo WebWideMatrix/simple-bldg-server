@@ -143,8 +143,9 @@ defmodule BldgServer.Residents do
     update_resident(resident, changes)
   end
 
-  def mark_as_verified(%Resident{} = resident) do
-    IO.puts("TODO mark as verified: #{resident.email}")
+  def update_session_id(%Resident{} = resident, session_id) do
+    changes = %{session_id: session_id}
+    update_resident(resident, changes)
   end
 
   @doc """

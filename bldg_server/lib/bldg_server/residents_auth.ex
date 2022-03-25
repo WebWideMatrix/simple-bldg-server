@@ -9,6 +9,8 @@ defmodule BldgServer.ResidentsAuth do
   alias BldgServer.ResidentsAuth.Session
 
   def pending_verification, do: "PENDING-VERIFICATION"
+  def verified, do: "VERIFIED"
+  def replaced, do: "REPLACED"
 
   @doc """
   Returns the list of sessions.
@@ -47,6 +49,11 @@ defmodule BldgServer.ResidentsAuth do
     Repo.get_by!(Session, session_id: session_id)
   end
 
+  def get_session_by_session_id(session_id) do 
+    IO.puts("looking up session by session id: #{session_id}")
+    Repo.get_by(Session, session_id: session_id)
+  end
+
 
   @doc """
   Creates a session.
@@ -83,6 +90,22 @@ defmodule BldgServer.ResidentsAuth do
     session
     |> Session.changeset(attrs)
     |> Repo.update()
+  end
+
+  # mark the active session for a resident as replaced
+  def mark_old_session_as_replaced(old_session_id) do
+    IO.puts("Marking old session as replaced: #{old_session_id}")
+    case get_session_by_session_id(old_session_id) do
+      nil -> {:error, "Old session not found"} 
+      old_session -> update_session(old_session, %{status: replaced}) # TODO update last activity time
+    end
+  end
+
+
+  def mark_as_verified(%Session{} = session) do
+    IO.puts("Marking session as verified: #{session.session_id}")
+    # TODO update last activity time
+    update_session(session, %{status: verified})
   end
 
   @doc """

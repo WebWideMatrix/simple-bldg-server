@@ -25,17 +25,22 @@ defmodule BldgServerWeb.ResidentController do
   end
 
   def verify_email(conn, %{"token" => token}) do
-    # with {:ok, resident_id} <- BldgServer.Token.verify_login_token(token),
-    #      {:ok, %Resident{verified: false} = resident} <- Residents.by_id(resident_id) do
+    ip_addr = conn.remote_ip |> :inet_parse.ntoa |> to_string()
+    pending_status = ResidentsAuth.pending_verification()
+    # decrypt token & retrieve the session & resident records
+    # also check the session - status should be pending-verificaion & ip-address should be the same as the current caller
     with {:ok, session_id} <- BldgServer.Token.verify_login_token(token),
-          session <- ResidentsAuth.get_session_by_session_id!(session_id),
+          %Session{status: pending_status, ip_address: ip_addr} = session <- ResidentsAuth.get_session_by_session_id!(session_id),
           resident <- Residents.get_resident!(session.resident_id) do
-          IO.inspect(session)
-          IO.inspect(resident)
-          Residents.mark_as_verified(resident)
-          send_resp(conn, 200, "Welcome to fromTeal!")
+        # TODO extra validation - check session date for expiration
+        if resident.session_id != nil do
+          ResidentsAuth.mark_old_session_as_replaced(resident.session_id)
+        end
+        {:ok, %Session{}} = ResidentsAuth.mark_as_verified(session)
+        {:ok, %Resident{}} = Residents.update_session_id(resident, session.session_id)
+        send_resp(conn, 200, "Welcome to fromTeal!")
     else
-      _ -> send_resp(conn, 400, "Could not decript token.")
+      _ -> send_resp(conn, 401, "Could not validate session.")
     end
   end
 
