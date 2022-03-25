@@ -66,6 +66,8 @@ defmodule BldgServer.Residents do
   """
   def get_resident_by_email!(email), do: Repo.get_by!(Resident, email: email)
 
+  def get_resident_by_email_and_session_id!(email, session_id), do: Repo.get_by!(Resident, email: email, session_id: session_id)
+
   @doc """
   Creates a resident.
 

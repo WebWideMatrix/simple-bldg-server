@@ -14,6 +14,7 @@ defmodule BldgServerWeb.Router do
     post "/bldgs/:address/relocate_to/:new_address", BldgController, :relocate
     post "/residents/login", ResidentController, :login
     get "/residents/verify", ResidentController, :verify_email
+    get "/residents/verification_status", ResidentController, :verification_status
     get "/residents/look/:flr", ResidentController, :look
     post "/residents/act", ResidentController, :act
     get "/roads/look/:flr", RoadController, :look

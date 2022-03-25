@@ -51,6 +51,20 @@ defmodule BldgServerWeb.ResidentController do
     |> send_resp(400, "The verification link is invalid.")
   end
 
+  def verification_status(conn, %{"email" => email, "session_id" => session_id}) do
+    ip_addr = conn.remote_ip |> :inet_parse.ntoa |> to_string()
+    verified = ResidentsAuth.verified()
+    with %Session{status: verified, ip_address: ip_addr, email: email} = session <- ResidentsAuth.get_session_by_session_id!(session_id),
+          resident <- Residents.get_resident_by_email_and_session_id!(email, session_id) do
+        # TODO extra validation - check session date for expiration
+        conn
+        |> put_status(:ok)
+        |> render("show.json", resident: resident)
+    else
+      _ -> send_resp(conn, 202, "Verification pending.")
+    end
+  end
+
   def create(conn, %{"resident" => resident_params}) do
     with {:ok, %Resident{} = resident} <- Residents.create_resident(resident_params) do
       conn
