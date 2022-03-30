@@ -15,12 +15,14 @@ defmodule BldgServerWeb.ResidentController do
   end
 
   def login(conn, %{"email" => email}) do
-    resident = Residents.get_resident_by_email!(email)    
-    with {:ok, %Resident{}} <- Residents.login(conn, resident) do
+    resident = Residents.get_resident_by_email!(email)
+    with session_id <- Residents.login(conn, resident) do
+      partial_resident = %Resident{email: resident.email, session_id: session_id}
+      IO.inspect(partial_resident)
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
-      |> render("show.json", resident: %Resident{email: resident.email})
+      |> render("show.json", resident: partial_resident)
     end
   end
 
@@ -30,7 +32,7 @@ defmodule BldgServerWeb.ResidentController do
     # decrypt token & retrieve the session & resident records
     # also check the session - status should be pending-verificaion & ip-address should be the same as the current caller
     with {:ok, session_id} <- BldgServer.Token.verify_login_token(token),
-          %Session{status: pending_status, ip_address: ip_addr} = session <- ResidentsAuth.get_session_by_session_id!(session_id),
+          %Session{status: ^pending_status, ip_address: ^ip_addr} = session <- ResidentsAuth.get_session_by_session_id!(session_id),
           resident <- Residents.get_resident!(session.resident_id) do
         # TODO extra validation - check session date for expiration
         if resident.session_id != nil do
@@ -54,14 +56,15 @@ defmodule BldgServerWeb.ResidentController do
   def verification_status(conn, %{"email" => email, "session_id" => session_id}) do
     ip_addr = conn.remote_ip |> :inet_parse.ntoa |> to_string()
     verified = ResidentsAuth.verified()
-    with %Session{status: verified, ip_address: ip_addr, email: email} = session <- ResidentsAuth.get_session_by_session_id!(session_id),
+    with %Session{status: ^verified, ip_address: ^ip_addr, email: ^email} = session <- ResidentsAuth.get_session_by_session_id!(session_id),
           resident <- Residents.get_resident_by_email_and_session_id!(email, session_id) do
         # TODO extra validation - check session date for expiration
         conn
         |> put_status(:ok)
         |> render("show.json", resident: resident)
     else
-      _ -> send_resp(conn, 202, "Verification pending.")
+      #_ -> conn |> put_status(204) |> render("show.json", resident: %Resident{})
+      _ -> send_resp(conn, 401, "Not verified yet.")
     end
   end
 
@@ -127,7 +130,7 @@ defmodule BldgServerWeb.ResidentController do
       |> render("show.json", resident: resident)
     end
   end
-  
+
   # SAY action
   def act(conn, %{"resident_email" => email, "action_type" => "SAY", "say_speaker" => speaker, "say_text" => text, "say_time" => msg_time, "say_flr" => flr, "say_location" => location, "say_mimetype" => msg_mimetype, "say_recipient" => recipient} = msg) do
     resident = Residents.get_resident_by_email!(email)
@@ -141,4 +144,3 @@ defmodule BldgServerWeb.ResidentController do
   end
 
 end
-

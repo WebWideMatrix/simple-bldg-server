@@ -123,7 +123,7 @@ defmodule BldgServer.Residents do
 
   @doc """
   Logs in a resident, following authentication.
-  - location would be the last known location or home bldg. 
+  - location would be the last known location or home bldg.
   - should generate a new session_id
   - update last_login_at & is_online
 
@@ -140,9 +140,11 @@ defmodule BldgServer.Residents do
     verification_url = Routes.resident_url(conn, :verify_email, token: token)
     IO.puts("verification_url = #{verification_url}")
     BldgServer.Notifications.send_login_verification_email(resident, verification_url)
-  
-    changes = %{is_online: true, last_login_at: DateTime.utc_now(), sesion_id: UUID.uuid4()} 
+
+    changes = %{is_online: true, last_login_at: DateTime.utc_now(), sesion_id: UUID.uuid4()}
     update_resident(resident, changes)
+    IO.puts("Returning #{session.session_id}")
+    session.session_id
   end
 
   def update_session_id(%Resident{} = resident, session_id) do
@@ -177,7 +179,7 @@ defmodule BldgServer.Residents do
     end
   end
 
-  
+
   def is_command(msg_text), do: String.at(msg_text, 0) == "/"
 
 
@@ -197,7 +199,7 @@ defmodule BldgServer.Residents do
         msg
       )
     end
-    
+
     result
   end
 
