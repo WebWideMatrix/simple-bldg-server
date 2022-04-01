@@ -3,7 +3,6 @@ defmodule BldgServerWeb.ResidentController do
 
   alias BldgServer.Residents
   alias BldgServer.Residents.Resident
-  alias BldgServer.Token
   alias BldgServer.ResidentsAuth
   alias BldgServer.ResidentsAuth.Session
 
@@ -40,7 +39,7 @@ defmodule BldgServerWeb.ResidentController do
         end
         {:ok, %Session{}} = ResidentsAuth.mark_as_verified(session)
         {:ok, %Resident{}} = Residents.update_session_id(resident, session.session_id)
-        send_resp(conn, 200, "Welcome to fromTeal!")
+        send_resp(conn, 200, "Welcome to fromTeal! You may close this page & switch back to the app.")
     else
       _ -> send_resp(conn, 401, "Could not validate session.")
     end
@@ -132,7 +131,7 @@ defmodule BldgServerWeb.ResidentController do
   end
 
   # SAY action
-  def act(conn, %{"resident_email" => email, "action_type" => "SAY", "say_speaker" => speaker, "say_text" => text, "say_time" => msg_time, "say_flr" => flr, "say_location" => location, "say_mimetype" => msg_mimetype, "say_recipient" => recipient} = msg) do
+  def act(conn, %{"resident_email" => email, "action_type" => "SAY", "say_speaker" => _speaker, "say_text" => _text, "say_time" => _msg_time, "say_flr" => _flr, "say_location" => _location, "say_mimetype" => _msg_mimetype, "say_recipient" => _recipient} = msg) do
     resident = Residents.get_resident_by_email!(email)
 
     with {:ok, %Resident{}} <- Residents.say(resident, msg) do
