@@ -44,12 +44,12 @@ defmodule BldgServer.ResidentsAuth do
   end
 
 
-  def get_session_by_session_id!(session_id) do 
+  def get_session_by_session_id!(session_id) do
     IO.puts("looking up session by session id: #{session_id}")
     Repo.get_by!(Session, session_id: session_id)
   end
 
-  def get_session_by_session_id(session_id) do 
+  def get_session_by_session_id(session_id) do
     IO.puts("looking up session by session id: #{session_id}")
     Repo.get_by(Session, session_id: session_id)
   end
@@ -96,8 +96,8 @@ defmodule BldgServer.ResidentsAuth do
   def mark_old_session_as_replaced(old_session_id) do
     IO.puts("Marking old session as replaced: #{old_session_id}")
     case get_session_by_session_id(old_session_id) do
-      nil -> {:error, "Old session not found"} 
-      old_session -> update_session(old_session, %{status: replaced}) # TODO update last activity time
+      nil -> {:error, "Old session not found"}
+      old_session -> update_session(old_session, %{status: replaced()})
     end
   end
 
@@ -105,7 +105,7 @@ defmodule BldgServer.ResidentsAuth do
   def mark_as_verified(%Session{} = session) do
     IO.puts("Marking session as verified: #{session.session_id}")
     # TODO update last activity time
-    update_session(session, %{status: verified})
+    update_session(session, %{status: verified(), last_activity_time: DateTime.utc_now()})
   end
 
   @doc """
