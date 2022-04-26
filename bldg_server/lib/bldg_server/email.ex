@@ -5,8 +5,8 @@ defmodule BldgServer.Email do
 
   use Bamboo.Phoenix, view: BldgServer.EmailView
 
-  @reply_to "dibaunaumh@gmail.com"
-  @from "dibaunaumh@gmail.com"
+  @reply_to "hello@fromteal.app"
+  @from "hello@fromteal.app"
 
 
   def login_verification_email(email_address, verification_url) do
