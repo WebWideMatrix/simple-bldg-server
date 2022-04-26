@@ -7,6 +7,9 @@ defmodule BldgServer.Residents do
   alias BldgServer.Repo
 
   alias BldgServer.Residents.Resident
+  alias BldgServer.ResidentsAuth
+
+  alias BldgServerWeb.Router.Helpers, as: Routes
 
   @doc """
   Returns the list of residents.
@@ -63,6 +66,8 @@ defmodule BldgServer.Residents do
   """
   def get_resident_by_email!(email), do: Repo.get_by!(Resident, email: email)
 
+  def get_resident_by_email_and_session_id!(email, session_id), do: Repo.get_by!(Resident, email: email, session_id: session_id)
+
   @doc """
   Creates a resident.
 
@@ -118,7 +123,7 @@ defmodule BldgServer.Residents do
 
   @doc """
   Logs in a resident, following authentication.
-  - location would be the last known location or home bldg. 
+  - location would be the last known location or home bldg.
   - should generate a new session_id
   - update last_login_at & is_online
 
@@ -128,8 +133,19 @@ defmodule BldgServer.Residents do
       {:ok, %Resident{}}
 
   """
-  def login(%Resident{} = resident) do
-    changes = %{is_online: true, last_login_at: DateTime.utc_now(), sesion_id: UUID.uuid4()} 
+  def login(conn, %Resident{} = resident) do
+    ip_addr = conn.remote_ip |> :inet_parse.ntoa |> to_string()
+    {_, session} = ResidentsAuth.create_session(%{"session_id" => UUID.uuid4(), "resident_id" => resident.id, "email" => resident.email, "status" => ResidentsAuth.pending_verification, "ip_address" => ip_addr, "last_activity_time" => DateTime.utc_now()})
+    token = BldgServer.Token.generate_login_token(session.session_id)
+    verification_url = Routes.resident_url(conn, :verify_email, token: token)
+    BldgServer.Notifications.send_login_verification_email(resident, verification_url)
+
+    IO.puts("Login started for #{resident.email}")
+    session.session_id
+  end
+
+  def update_session_id(%Resident{} = resident, session_id) do
+    changes = %{session_id: session_id, is_online: true, last_login_at: DateTime.utc_now()}
     update_resident(resident, changes)
   end
 
@@ -160,7 +176,7 @@ defmodule BldgServer.Residents do
     end
   end
 
-  
+
   def is_command(msg_text), do: String.at(msg_text, 0) == "/"
 
 
@@ -180,7 +196,7 @@ defmodule BldgServer.Residents do
         msg
       )
     end
-    
+
     result
   end
 
