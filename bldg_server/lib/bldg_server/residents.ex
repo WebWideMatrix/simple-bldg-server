@@ -138,17 +138,14 @@ defmodule BldgServer.Residents do
     {_, session} = ResidentsAuth.create_session(%{"session_id" => UUID.uuid4(), "resident_id" => resident.id, "email" => resident.email, "status" => ResidentsAuth.pending_verification, "ip_address" => ip_addr, "last_activity_time" => DateTime.utc_now()})
     token = BldgServer.Token.generate_login_token(session.session_id)
     verification_url = Routes.resident_url(conn, :verify_email, token: token)
-    IO.puts("verification_url = #{verification_url}")
     BldgServer.Notifications.send_login_verification_email(resident, verification_url)
 
-    changes = %{is_online: true, last_login_at: DateTime.utc_now(), sesion_id: UUID.uuid4()}
-    update_resident(resident, changes)
-    IO.puts("Returning #{session.session_id}")
+    IO.puts("Login started for #{resident.email}")
     session.session_id
   end
 
   def update_session_id(%Resident{} = resident, session_id) do
-    changes = %{session_id: session_id}
+    changes = %{session_id: session_id, is_online: true, last_login_at: DateTime.utc_now()}
     update_resident(resident, changes)
   end
 

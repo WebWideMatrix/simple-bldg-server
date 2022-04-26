@@ -17,7 +17,6 @@ defmodule BldgServerWeb.ResidentController do
     resident = Residents.get_resident_by_email!(email)
     with session_id <- Residents.login(conn, resident) do
       partial_resident = %Resident{email: resident.email, session_id: session_id}
-      IO.inspect(partial_resident)
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
@@ -45,6 +44,7 @@ defmodule BldgServerWeb.ResidentController do
           end
           {:ok, %Session{}} = ResidentsAuth.mark_as_verified(session)
           {:ok, %Resident{}} = Residents.update_session_id(resident, session.session_id)
+          IO.puts("Login completed with email verification for #{resident.email}")
           send_resp(conn, 200, "Welcome to fromTeal! You may close this page & switch back to the app.")
         end
     else
