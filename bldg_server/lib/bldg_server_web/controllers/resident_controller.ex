@@ -8,6 +8,8 @@ defmodule BldgServerWeb.ResidentController do
 
   action_fallback BldgServerWeb.FallbackController
 
+  def verification_expiration_time, do: 5
+
   def index(conn, _params) do
     residents = Residents.list_residents()
     render(conn, "index.json", residents: residents)
@@ -36,7 +38,7 @@ defmodule BldgServerWeb.ResidentController do
     with {:ok, session_id} <- BldgServer.Token.verify_login_token(token),
           %Session{status: ^pending_status, ip_address: ^ip_addr, last_activity_time: session_timestamp} = session <- ResidentsAuth.get_session_by_session_id!(session_id),
           resident <- Residents.get_resident!(session.resident_id) do
-        if is_older_than_x_minutes_ago(session_timestamp, 5) do
+        if is_older_than_x_minutes_ago(session_timestamp, verification_expiration_time()) do
           send_resp(conn, 400, "Sorry, the session has already expired, please login again.")
         else
           if resident.session_id != nil do
@@ -64,10 +66,13 @@ defmodule BldgServerWeb.ResidentController do
     verified = ResidentsAuth.verified()
     with %Session{status: ^verified, ip_address: ^ip_addr, email: ^email} = session <- ResidentsAuth.get_session_by_session_id!(session_id),
           resident <- Residents.get_resident_by_email_and_session_id!(email, session_id) do
-        # TODO extra validation - check session date for expiration
-        conn
-        |> put_status(:ok)
-        |> render("show.json", resident: resident)
+        if is_older_than_x_minutes_ago(session.last_activity_time, verification_expiration_time() + 2) do
+          send_resp(conn, 400, "Sorry, the session has already expired, please login again.")
+        else
+          conn
+          |> put_status(:ok)
+          |> render("show.json", resident: resident)
+        end
     else
       #_ -> conn |> put_status(204) |> render("show.json", resident: %Resident{})
       _ -> send_resp(conn, 401, "Not verified yet.")
