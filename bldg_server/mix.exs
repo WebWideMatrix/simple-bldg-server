@@ -45,8 +45,8 @@ defmodule BldgServer.MixProject do
       {:uuid, "~> 1.1" },
       {:json, "~> 1.4"},
       {:finch, "~> 0.7"},
-      {:bamboo, "~> 0.7"},
-      {:bamboo_smtp, "~> 1.2.1"}
+      {:bamboo, "~> 1.7.1"},
+      {:bamboo_smtp, "~> 3.1.3"}
     ]
   end
 

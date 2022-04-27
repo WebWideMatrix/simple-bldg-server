@@ -27,7 +27,7 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 config :bldg_server, BldgServer.Mailer,
-  adapter: Bamboo.SendgridAdapter,
+  adapter: Bamboo.SendGridAdapter,
   api_key: System.get_env("SENDGRID_API_KEY"),
   hackney_opts: [
     recv_timeout: :timer.minutes(1)
