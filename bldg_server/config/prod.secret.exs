@@ -30,6 +30,15 @@ config :bldg_server, BldgServerWeb.Endpoint,
   ],
   secret_key_base: secret_key_base
 
+
+config :bldg_server, BldgServer.Mailer,
+  adapter: Bamboo.SendGridAdapter,
+  api_key: System.get_env("SENDGRID_API_KEY"),
+  hackney_opts: [
+    recv_timeout: :timer.minutes(1)
+  ]
+
+
 # ## Using releases (Elixir v1.9+)
 #
 # If you are doing OTP releases, you need to instruct Phoenix

@@ -26,6 +26,15 @@ config :bldg_server, BldgServerWeb.Endpoint,
   check_origin: false,
   watchers: []
 
+
+config :bldg_server, BldgServer.Mailer,
+  adapter: Bamboo.SendGridAdapter,
+  api_key: System.get_env("SENDGRID_API_KEY"),
+  hackney_opts: [
+    recv_timeout: :timer.minutes(1)
+  ]
+
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed
