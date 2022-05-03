@@ -27,6 +27,13 @@ config :bldg_server, BldgServerWeb.Endpoint,
   watchers: []
 
 
+config :bldg_server,
+  app_port: 4000
+
+config :bldg_server,
+  app_hostname: "localhost"
+
+
 # config :bldg_server, BldgServer.Mailer,
 #   adapter: Bamboo.SendGridAdapter,
 #   api_key: System.get_env("SENDGRID_API_KEY"),
