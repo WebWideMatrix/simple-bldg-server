@@ -2,8 +2,8 @@ use Mix.Config
 
 # Configure your database
 config :bldg_server, BldgServer.Repo,
-  username: "udi",
-  password: "",
+  username: "postgres",
+  password: "postgres",
   database: "bldg_server_dev",
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true,
@@ -27,12 +27,12 @@ config :bldg_server, BldgServerWeb.Endpoint,
   watchers: []
 
 
-config :bldg_server, BldgServer.Mailer,
-  adapter: Bamboo.SendGridAdapter,
-  api_key: System.get_env("SENDGRID_API_KEY"),
-  hackney_opts: [
-    recv_timeout: :timer.minutes(1)
-  ]
+# config :bldg_server, BldgServer.Mailer,
+#   adapter: Bamboo.SendGridAdapter,
+#   api_key: System.get_env("SENDGRID_API_KEY"),
+#   hackney_opts: [
+#     recv_timeout: :timer.minutes(1)
+#   ]
 
 
 # ## SSL Support
