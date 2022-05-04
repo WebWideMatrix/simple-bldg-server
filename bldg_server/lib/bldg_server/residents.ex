@@ -137,7 +137,11 @@ defmodule BldgServer.Residents do
     ip_addr = conn.remote_ip |> :inet_parse.ntoa |> to_string()
     {_, session} = ResidentsAuth.create_session(%{"session_id" => UUID.uuid4(), "resident_id" => resident.id, "email" => resident.email, "status" => ResidentsAuth.pending_verification, "ip_address" => ip_addr, "last_activity_time" => DateTime.utc_now()})
     token = BldgServer.Token.generate_login_token(session.session_id)
-    verification_url = Routes.resident_url(conn, :verify_email, token: token)
+    #verification_url = Routes.resident_url(conn, :verify_email, token: token)  # doesn't work well with reverse proxy
+    host = Application.get_env(:bldg_server, :app_hostname)
+    # TODO Add the port for local dev. On prod, even though a port is configured, it isn't used in the URL since we have reverse proxy
+    # TODO Don't hardcode the schema
+    verification_url = "https://#{host}/v1/residents/verify?token=#{token}"
     BldgServer.Notifications.send_login_verification_email(resident, verification_url)
 
     IO.puts("Login started for #{resident.email}")

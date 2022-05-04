@@ -26,6 +26,14 @@ config :bldg_server, BldgServerWeb.Endpoint,
   check_origin: false,
   watchers: []
 
+
+config :bldg_server,
+  app_port: 4000
+
+config :bldg_server,
+  app_hostname: "localhost"
+
+
 # ## SSL Support
 #
 # In order to use HTTPS in development, a self-signed
