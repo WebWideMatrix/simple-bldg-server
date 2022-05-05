@@ -34,7 +34,7 @@ defmodule BldgServer.Buildings do
     Repo.all(q)
   end
 
-  
+
 
   @doc """
   Gets a single bldg.
@@ -55,7 +55,7 @@ defmodule BldgServer.Buildings do
   def get_by_web_url(url), do: Repo.get_by(Bldg, web_url: url)
 
   def get_similar_entities(flr, entity_type) do
-    q = from b in Bldg, 
+    q = from b in Bldg,
         where: b.flr == ^flr and b.entity_type == ^entity_type,
         order_by: b.inserted_at
     Repo.all(q)
@@ -214,7 +214,7 @@ Given an entity:
     # TODO read from config
 
     case Map.get(entity, "address") do
-      nil -> 
+      nil ->
         # try to find place near entities of the same entity-type
         %{"flr" => flr, "entity_type" => entity_type} = entity
         similar_bldgs = Buildings.get_similar_entities(flr, entity_type)
