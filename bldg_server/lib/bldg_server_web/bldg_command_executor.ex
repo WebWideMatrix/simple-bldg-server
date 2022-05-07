@@ -24,6 +24,25 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         String.split(msg_text, " ")
     end
 
+    def execute_command(["/add", "owner", email, "to", "bldg", website], _msg) do
+      bldg = Buildings.get_by_web_url(website)
+      new_owners = [email | bldg.owners]
+      Buildings.update_bldg(bldg, %{"owners" => new_owners})
+      IO.puts("owner added to bldg #{website}: #{email}")
+    end
+
+    def execute_command(["/remove", "owner", email, "from", "bldg", website], _msg) do
+      bldg = Buildings.get_by_web_url(website)
+      pos = Enum.find_index(bldg.owners, fn x -> x == email end)
+      if pos == nil do
+        IO.puts("tried to remove non-existing owner #{email} from #{website}") #TODO reply with error
+      else
+        new_owners = List.delete_at(bldg.owners, pos)
+        Buildings.update_bldg(bldg, %{"owners" => new_owners})
+        IO.puts("owner removed from bldg #{website}: #{email}")
+      end
+    end
+
     # create road between 2 bldgs (given using their websites)
     def execute_command(["/create", "road", "between", website1, "and", website2], msg) do
         # create a road between the given bldgs, inside the given flr
