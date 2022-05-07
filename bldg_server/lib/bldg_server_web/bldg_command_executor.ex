@@ -24,22 +24,31 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         String.split(msg_text, " ")
     end
 
-    def execute_command(["/add", "owner", email, "to", "bldg", website], _msg) do
+    def execute_command(["/add", "owner", email, "to", "bldg", website], msg) do
       bldg = Buildings.get_by_web_url(website)
-      new_owners = [email | bldg.owners]
-      Buildings.update_bldg(bldg, %{"owners" => new_owners})
-      IO.puts("owner added to bldg #{website}: #{email}")
+      # verify that the speaker is also an owner
+      if Enum.find(bldg.owners, fn x -> x == msg["resident_email"] end) == nil do
+        raise "Unauthorized"
+      else
+        Buildings.update_bldg(bldg, %{"owners" => [email | bldg.owners]})
+        IO.puts("owner added to bldg #{website}: #{email}")
+      end
     end
 
-    def execute_command(["/remove", "owner", email, "from", "bldg", website], _msg) do
+    def execute_command(["/remove", "owner", email, "from", "bldg", website], msg) do
       bldg = Buildings.get_by_web_url(website)
-      pos = Enum.find_index(bldg.owners, fn x -> x == email end)
-      if pos == nil do
-        IO.puts("tried to remove non-existing owner #{email} from #{website}") #TODO reply with error
+      # verify that the speaker is also an owner
+      if Enum.find(bldg.owners, fn x -> x == msg["resident_email"] end) == nil do
+        raise "Unauthorized"
       else
-        new_owners = List.delete_at(bldg.owners, pos)
-        Buildings.update_bldg(bldg, %{"owners" => new_owners})
-        IO.puts("owner removed from bldg #{website}: #{email}")
+        pos = Enum.find_index(bldg.owners, fn x -> x == email end)
+        if pos == nil do
+          raise "tried to remove non-existing owner #{email} from #{website}"
+        else
+          new_owners = List.delete_at(bldg.owners, pos)
+          Buildings.update_bldg(bldg, %{"owners" => new_owners})
+          IO.puts("owner removed from bldg #{website}: #{email}")
+        end
       end
     end
 
@@ -169,10 +178,14 @@ defmodule BldgServerWeb.BldgCommandExecutor do
       # update the location of the bldg with the given website to the say location
       # TODO validate that the actor resident/bldg has the sufficient permissions
       # TODO composite bldgs should update the location of their children bldgs as well
-
       {x, y} = Buildings.extract_coords(msg["say_location"])
-      Buildings.get_by_web_url(website)
-      |> Buildings.update_bldg(%{"address" => msg["say_location"], "x" => x, "y" => y})
+      bldg = Buildings.get_by_web_url(website)
+      # verify that the speaker is also an owner
+      if Enum.find(bldg.owners, fn x -> x == msg["resident_email"] end) == nil do
+        raise "Unauthorized"
+      else
+        Buildings.update_bldg(bldg, %{"address" => msg["say_location"], "x" => x, "y" => y})
+      end
     end
 
     #def handle_info({sender, message, flr}, state) do
