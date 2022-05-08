@@ -46,7 +46,7 @@ defmodule BldgServerWeb.BldgController do
     render(conn, "look.json", bldgs: bldgs)
   end
 
-  
+
   def build(conn, %{"entity" => entity}) do
     bldg = Buildings.build(entity)
     create(conn, %{"bldg" => bldg})

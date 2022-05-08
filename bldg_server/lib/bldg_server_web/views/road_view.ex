@@ -22,7 +22,8 @@ defmodule BldgServerWeb.RoadView do
       from_x: road.from_x,
       from_y: road.from_y,
       to_x: road.to_x,
-      to_y: road.to_y
+      to_y: road.to_y,
+      owners: road.owners
     }
   end
 end

@@ -17,6 +17,7 @@ defmodule BldgServer.Buildings.Bldg do
     field :web_url, :string
     field :x, :integer
     field :y, :integer
+    field :owners, {:array, :string}
 
     timestamps()
   end
@@ -24,7 +25,7 @@ defmodule BldgServer.Buildings.Bldg do
   @doc false
   def changeset(bldg, attrs) do
     bldg
-    |> cast(attrs, [:address, :flr, :x, :y, :is_composite, :name, :web_url, :entity_type, :state, :category, :tags, :summary, :picture_url, :data])
+    |> cast(attrs, [:address, :flr, :x, :y, :is_composite, :name, :web_url, :entity_type, :state, :category, :tags, :summary, :picture_url, :data, :owners])
     |> validate_required([:address, :flr, :x, :y, :is_composite, :name, :web_url, :entity_type])
     |> unique_constraint(:address)
     |> unique_constraint(:web_url)
