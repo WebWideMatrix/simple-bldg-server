@@ -29,6 +29,7 @@ defmodule BldgServerWeb.BldgView do
       tags: bldg.tags,
       summary: bldg.summary,
       picture_url: bldg.picture_url,
+      owners: bldg.owners,
       data: bldg.data}
   end
 end
