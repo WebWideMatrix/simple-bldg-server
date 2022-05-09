@@ -120,6 +120,19 @@ defmodule BldgServer.Residents do
     Repo.delete(resident)
   end
 
+  def start_email_verification(%Resident{} = resident, ip_addr) do
+    {_, session} = ResidentsAuth.create_session(%{"session_id" => UUID.uuid4(), "resident_id" => resident.id, "email" => resident.email, "status" => ResidentsAuth.pending_verification, "ip_address" => ip_addr, "last_activity_time" => DateTime.utc_now()})
+    token = BldgServer.Token.generate_login_token(session.session_id)
+    #verification_url = Routes.resident_url(conn, :verify_email, token: token)  # doesn't work well with reverse proxy
+    host = Application.get_env(:bldg_server, :app_hostname)
+    # TODO Add the port for local dev. On prod, even though a port is configured, it isn't used in the URL since we have reverse proxy
+    # TODO Don't hardcode the schema
+    verification_url = "https://#{host}/v1/residents/verify?token=#{token}"
+    BldgServer.Notifications.send_login_verification_email(resident, verification_url)
+    IO.puts("Login started for #{resident.email}")
+    {:verification_started, session.session_id}
+  end
+
 
   @doc """
   Logs in a resident, following authentication.
@@ -135,17 +148,19 @@ defmodule BldgServer.Residents do
   """
   def login(conn, %Resident{} = resident) do
     ip_addr = conn.remote_ip |> :inet_parse.ntoa |> to_string()
-    {_, session} = ResidentsAuth.create_session(%{"session_id" => UUID.uuid4(), "resident_id" => resident.id, "email" => resident.email, "status" => ResidentsAuth.pending_verification, "ip_address" => ip_addr, "last_activity_time" => DateTime.utc_now()})
-    token = BldgServer.Token.generate_login_token(session.session_id)
-    #verification_url = Routes.resident_url(conn, :verify_email, token: token)  # doesn't work well with reverse proxy
-    host = Application.get_env(:bldg_server, :app_hostname)
-    # TODO Add the port for local dev. On prod, even though a port is configured, it isn't used in the URL since we have reverse proxy
-    # TODO Don't hardcode the schema
-    verification_url = "https://#{host}/v1/residents/verify?token=#{token}"
-    BldgServer.Notifications.send_login_verification_email(resident, verification_url)
-
-    IO.puts("Login started for #{resident.email}")
-    session.session_id
+    # check whether the resident has a verified session, from the same ip address, in the last week
+    recent_session = ResidentsAuth.get_most_recent_verified_session(resident.id, ip_addr)
+    if recent_session == nil do
+      start_email_verification(resident, ip_addr)
+    else
+      [{session_id, updated_at}] = recent_session
+      if Utils.is_newer_than_x_minutes_ago(updated_at, 60*24*7) do
+        IO.puts("Login done for #{resident.email} - already has valid session")
+        {:has_valid_session, session_id}
+      else
+        start_email_verification(resident, ip_addr)
+      end
+    end
   end
 
   def update_session_id(%Resident{} = resident, session_id) do
