@@ -17,18 +17,18 @@ defmodule BldgServerWeb.ResidentController do
 
   def login(conn, %{"email" => email}) do
     resident = Residents.get_resident_by_email!(email)
-    with session_id <- Residents.login(conn, resident) do
-      partial_resident = %Resident{email: resident.email, session_id: session_id}
+    with {status, session_id} <- Residents.login(conn, resident) do
+      partial_resident = %Resident{email: resident.email, session_id: session_id}   # will indicate "login pending verification"
+      return_resident = case status do
+        :has_valid_session -> resident
+        :verification_started -> partial_resident
+      end
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
-      |> render("show.json", resident: partial_resident)
+      |> render("show.json", resident: return_resident)
     end
   end
-
-
-  def is_older_than_x_minutes_ago(dt, x), do: NaiveDateTime.diff(NaiveDateTime.utc_now(), dt) > (x * 60)
-
 
   def verify_email(conn, %{"token" => token}) do
     ip_addr = conn.remote_ip |> :inet_parse.ntoa |> to_string()
@@ -38,7 +38,7 @@ defmodule BldgServerWeb.ResidentController do
     with {:ok, session_id} <- BldgServer.Token.verify_login_token(token),
           %Session{status: ^pending_status, ip_address: ^ip_addr, last_activity_time: session_timestamp} = session <- ResidentsAuth.get_session_by_session_id!(session_id),
           resident <- Residents.get_resident!(session.resident_id) do
-        if is_older_than_x_minutes_ago(session_timestamp, verification_expiration_time()) do
+        if Utils.is_older_than_x_minutes_ago(session_timestamp, verification_expiration_time()) do
           send_resp(conn, 400, "Sorry, the session has already expired, please login again.")
         else
           if resident.session_id != nil do
@@ -66,7 +66,7 @@ defmodule BldgServerWeb.ResidentController do
     verified = ResidentsAuth.verified()
     with %Session{status: ^verified, ip_address: ^ip_addr, email: ^email} = session <- ResidentsAuth.get_session_by_session_id!(session_id),
           resident <- Residents.get_resident_by_email_and_session_id!(email, session_id) do
-        if is_older_than_x_minutes_ago(session.last_activity_time, verification_expiration_time() + 2) do
+        if Utils.is_older_than_x_minutes_ago(session.last_activity_time, verification_expiration_time() + 2) do
           send_resp(conn, 400, "Sorry, the session has already expired, please login again.")
         else
           conn

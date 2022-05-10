@@ -52,6 +52,15 @@ defmodule BldgServer.ResidentsAuth do
     Repo.get_by(Session, session_id: session_id)
   end
 
+  def get_most_recent_verified_session(resident_id, ip_address) do
+    verified_status = verified()
+    # lookup a session with verified status & the given resident_id & ip_address
+    # TODO add migration to create the corresponding index in the DB
+    query = from s in "sessions",
+      where: s.resident_id == ^resident_id and s.ip_address == ^ip_address and s.status == ^verified_status,
+      select: {s.session_id, s.updated_at}
+    Repo.all(last(query, :updated_at))
+  end
 
   @doc """
   Creates a session.
