@@ -150,7 +150,7 @@ defmodule BldgServer.Residents do
     ip_addr = conn.remote_ip |> :inet_parse.ntoa |> to_string()
     # check whether the resident has a verified session, from the same ip address, in the last week
     recent_session = ResidentsAuth.get_most_recent_verified_session(resident.id, ip_addr)
-    if recent_session == nil do
+    if recent_session == [] do
       start_email_verification(resident, ip_addr)
     else
       [{session_id, updated_at}] = recent_session
