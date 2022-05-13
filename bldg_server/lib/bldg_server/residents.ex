@@ -9,7 +9,8 @@ defmodule BldgServer.Residents do
   alias BldgServer.Residents.Resident
   alias BldgServer.ResidentsAuth
 
-  alias BldgServerWeb.Router.Helpers, as: Routes
+  # alias BldgServerWeb.Router.Helpers, as: Routes
+
 
   @doc """
   Returns the list of residents.
