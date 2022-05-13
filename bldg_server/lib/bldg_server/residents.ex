@@ -184,6 +184,12 @@ defmodule BldgServer.Residents do
     update_resident(resident, changes)
   end
 
+  def enter_bldg(%Resident{} = resident, address) do
+    changes = %{flr: "#{address}/l0", location: "#{address}/l0/b(10,10)", x: 10, y: 10}
+    update_resident(resident, changes)
+  end
+
+
   def change_dir(%Resident{} = resident, direction) do
     changes = %{direction: direction}
     update_resident(resident, changes)
