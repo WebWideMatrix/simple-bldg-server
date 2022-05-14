@@ -110,7 +110,9 @@ defmodule BldgServerWeb.ResidentController do
   end
 
   def look(conn, %{"flr" => flr}) do
-    residents = Residents.list_residents_in_flr(flr)
+    # unescape the flr parameter
+    decoded_flr = URI.decode(flr)
+    residents = Residents.list_residents_in_flr(decoded_flr)
     render(conn, "look.json", residents: residents)
   end
 

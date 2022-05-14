@@ -42,7 +42,9 @@ defmodule BldgServerWeb.BldgController do
   end
 
   def look(conn, %{"flr" => flr}) do
-    bldgs = Buildings.list_bldgs_in_flr(flr)
+    # unescape the flr parameter
+    decoded_flr = URI.decode(flr)
+    bldgs = Buildings.list_bldgs_in_flr(decoded_flr)
     render(conn, "look.json", bldgs: bldgs)
   end
 
