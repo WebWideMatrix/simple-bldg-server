@@ -103,6 +103,9 @@ defmodule BldgServer.Residents do
     resident
     |> Resident.changeset(attrs)
     |> Repo.update()
+    IO.puts("~~~~~~~~~~~~~~~~~")
+    IO.inspect(resident)
+    resident
   end
 
   @doc """
@@ -185,7 +188,7 @@ defmodule BldgServer.Residents do
   end
 
   def enter_bldg(%Resident{} = resident, address) do
-    changes = %{flr: "#{address}/l0", location: "#{address}/l0/b(10,10)", x: 10, y: 10}
+    changes = %{flr: "#{address}/l0", location: "#{address}/l0/b(0,30)", x: 0, y: 30}
     update_resident(resident, changes)
   end
 
