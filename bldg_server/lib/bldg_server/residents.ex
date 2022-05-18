@@ -103,9 +103,6 @@ defmodule BldgServer.Residents do
     resident
     |> Resident.changeset(attrs)
     |> Repo.update()
-    IO.puts("~~~~~~~~~~~~~~~~~")
-    IO.inspect(resident)
-    resident
   end
 
   @doc """
