@@ -124,11 +124,11 @@ defmodule BldgServerWeb.ResidentController do
     resident = Residents.get_resident_by_email!(email)
     # TODO validate that the new location is free
 
-    with {:ok, %Resident{}} <- Residents.move(resident, location, x, y) do
+    with {:ok, %Resident{} = upd_rsdt} <- Residents.move(resident, location, x, y) do
       conn
       |> put_status(:ok)
-      |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
-      |> render("show.json", resident: resident)
+      |> put_resp_header("location", Routes.resident_path(conn, :show, upd_rsdt))
+      |> render("show.json", resident: upd_rsdt)
     end
   end
 
@@ -136,11 +136,11 @@ defmodule BldgServerWeb.ResidentController do
   def act(conn, %{"resident_email" => email, "action_type" => "TURN", "turn_direction" => direction}) do
     resident = Residents.get_resident_by_email!(email)
 
-    with {:ok, %Resident{}} <- Residents.change_dir(resident, direction) do
+    with {:ok, %Resident{} = upd_rsdt} <- Residents.change_dir(resident, direction) do
       conn
       |> put_status(:ok)
-      |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
-      |> render("show.json", resident: resident)
+      |> put_resp_header("location", Routes.resident_path(conn, :show, upd_rsdt))
+      |> render("show.json", resident: upd_rsdt)
     end
   end
 
@@ -148,11 +148,11 @@ defmodule BldgServerWeb.ResidentController do
   def act(conn, %{"resident_email" => email, "action_type" => "SAY", "say_speaker" => _speaker, "say_text" => _text, "say_time" => _msg_time, "say_flr" => _flr, "say_location" => _location, "say_mimetype" => _msg_mimetype, "say_recipient" => _recipient} = msg) do
     resident = Residents.get_resident_by_email!(email)
 
-    with {:ok, %Resident{}} <- Residents.say(resident, msg) do
+    with {:ok, %Resident{} = upd_rsdt} <- Residents.say(resident, msg) do
       conn
       |> put_status(:ok)
-      |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
-      |> render("show.json", resident: resident)
+      |> put_resp_header("location", Routes.resident_path(conn, :show, upd_rsdt))
+      |> render("show.json", resident: upd_rsdt)
     end
   end
 
@@ -161,11 +161,11 @@ defmodule BldgServerWeb.ResidentController do
     resident = Residents.get_resident_by_email!(email)
     # TODO validate that the resident is authorized to enter the given bldg
 
-    with {:ok, %Resident{}} <- Residents.enter_bldg(resident, address) do
+    with {:ok, %Resident{} = upd_rsdt} <- Residents.enter_bldg(resident, address) do
       conn
       |> put_status(:ok)
-      |> put_resp_header("location", Routes.resident_path(conn, :show, resident))
-      |> render("show.json", resident: resident)
+      |> put_resp_header("location", Routes.resident_path(conn, :show, upd_rsdt))
+      |> render("show.json", resident: upd_rsdt)
     end
   end
 end

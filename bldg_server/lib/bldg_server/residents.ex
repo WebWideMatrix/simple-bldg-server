@@ -185,7 +185,7 @@ defmodule BldgServer.Residents do
   end
 
   def enter_bldg(%Resident{} = resident, address) do
-    changes = %{flr: "#{address}/l0", location: "#{address}/l0/b(0,30)", x: 0, y: 30}
+    changes = %{flr: "#{address}/l0", location: "#{address}/l0/b(0,33)", x: 0, y: 33}
     update_resident(resident, changes)
   end
 
