@@ -8,6 +8,8 @@ defmodule BldgServer.Residents do
 
   alias BldgServer.Residents.Resident
   alias BldgServer.ResidentsAuth
+  alias BldgServer.Buildings
+
 
   # alias BldgServerWeb.Router.Helpers, as: Routes
 
@@ -189,6 +191,18 @@ defmodule BldgServer.Residents do
     update_resident(resident, changes)
   end
 
+  def exit_bldg(%Resident{} = resident, address) do
+    # get the container flr
+    container_flr = Buildings.get_container_flr(address)
+
+    # determine the location next to the door of the bldg exited
+    {x, y} = Buildings.extract_coords(address)
+    new_x = x
+    new_y = y + 6
+
+    changes = %{flr: container_flr, location: "#{container_flr}/b(#{new_x},#{new_y})", x: new_x, y: new_y}
+    update_resident(resident, changes)
+  end
 
   def change_dir(%Resident{} = resident, direction) do
     changes = %{direction: direction}

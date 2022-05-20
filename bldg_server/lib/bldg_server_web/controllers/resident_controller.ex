@@ -168,4 +168,18 @@ defmodule BldgServerWeb.ResidentController do
       |> render("show.json", resident: upd_rsdt)
     end
   end
+
+  # EXIT_BLDG action
+  def act(conn, %{"resident_email" => email, "action_type" => "EXIT_BLDG", "bldg_address" => address}) do
+    resident = Residents.get_resident_by_email!(email)
+    # TODO validate that the resident is authorized to enter the container bldg (although if not, are they essentially locked?)
+
+    with {:ok, %Resident{} = upd_rsdt} <- Residents.exit_bldg(resident, address) do
+      conn
+      |> put_status(:ok)
+      |> put_resp_header("location", Routes.resident_path(conn, :show, upd_rsdt))
+      |> render("show.json", resident: upd_rsdt)
+    end
+  end
+
 end
