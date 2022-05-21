@@ -187,7 +187,8 @@ defmodule BldgServer.Residents do
   end
 
   def enter_bldg(%Resident{} = resident, address) do
-    changes = %{flr: "#{address}/l0", location: "#{address}/l0/b(0,33)", x: 0, y: 33}
+    {initial_x, initial_y} = {8, 40}  # TODO read from config, per bldg type
+    changes = %{flr: "#{address}/l0", location: "#{address}/l0/b(#{initial_x},#{initial_y})", x: initial_x, y: initial_y}
     update_resident(resident, changes)
   end
 
