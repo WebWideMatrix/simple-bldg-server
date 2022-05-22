@@ -84,7 +84,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
 
         # TODO if creating under a given bldg, send its container_web_url instead of flr
 
-        {x, y} = Buildings.extract_coords(msg["say_location"])
+        {x, y} = Buildings.extract_coords(msg["say_location"]) |> Buildings.move_from_speaker(-10)
         entity = %{
           "flr" => msg["say_flr"],
           "address" => msg["say_location"],
@@ -108,7 +108,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
 
       # TODO if creating under a given bldg, send its container_web_url instead of flr
 
-      {x, y} = Buildings.extract_coords(msg["say_location"])
+      {x, y} = Buildings.extract_coords(msg["say_location"]) |> Buildings.move_from_speaker(-10)
       entity = %{
         "flr" => msg["say_flr"],
         "address" => msg["say_location"],
@@ -132,7 +132,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
 
       # TODO if creating under a given bldg, send its container_web_url instead of flr
 
-      {x, y} = Buildings.extract_coords(msg["say_location"])
+      {x, y} = Buildings.extract_coords(msg["say_location"]) |> Buildings.move_from_speaker(-10)
       entity = %{
         "flr" => msg["say_flr"],
         "address" => msg["say_location"],
@@ -156,7 +156,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
 
         # TODO if creating under a given bldg, send its container_web_url instead of flr
 
-        {x, y} = Buildings.extract_coords(msg["say_location"])
+        {x, y} = Buildings.extract_coords(msg["say_location"]) |> Buildings.move_from_speaker(-10)
         entity = %{
           "flr" => msg["say_flr"],
           "address" => msg["say_location"],
