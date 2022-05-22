@@ -140,6 +140,20 @@ defmodule BldgServer.Buildings do
     {x, y}
   end
 
+  def move_from_speaker({x, y}, offset) do
+    {x, y + offset}
+  end
+
+  def get_container_flr(addr) do
+    # returns the container flr for given address. TODO verify that a bldg is given & not a flr
+    addr
+    |> String.split(address_delimiter)
+    |> Enum.reverse()
+    |> tl()
+    |> Enum.reverse()
+    |> Enum.join(address_delimiter)
+  end
+
 
   # FRAMEWORK
 

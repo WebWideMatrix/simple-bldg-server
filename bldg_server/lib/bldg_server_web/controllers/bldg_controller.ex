@@ -21,7 +21,9 @@ defmodule BldgServerWeb.BldgController do
   end
 
   def show(conn, %{"address" => address}) do
-    bldg = Buildings.get_bldg!(address)
+    # unescape the address parameter
+    decoded_address = URI.decode(address)
+    bldg = Buildings.get_bldg!(decoded_address)
     render(conn, "show.json", bldg: bldg)
   end
 
@@ -42,7 +44,9 @@ defmodule BldgServerWeb.BldgController do
   end
 
   def look(conn, %{"flr" => flr}) do
-    bldgs = Buildings.list_bldgs_in_flr(flr)
+    # unescape the flr parameter
+    decoded_flr = URI.decode(flr)
+    bldgs = Buildings.list_bldgs_in_flr(decoded_flr)
     render(conn, "look.json", bldgs: bldgs)
   end
 

@@ -8,8 +8,11 @@ defmodule BldgServer.Residents do
 
   alias BldgServer.Residents.Resident
   alias BldgServer.ResidentsAuth
+  alias BldgServer.Buildings
 
-  alias BldgServerWeb.Router.Helpers, as: Routes
+
+  # alias BldgServerWeb.Router.Helpers, as: Routes
+
 
   @doc """
   Returns the list of residents.
@@ -150,7 +153,7 @@ defmodule BldgServer.Residents do
     ip_addr = conn.remote_ip |> :inet_parse.ntoa |> to_string()
     # check whether the resident has a verified session, from the same ip address, in the last week
     recent_session = ResidentsAuth.get_most_recent_verified_session(resident.id, ip_addr)
-    if recent_session == nil do
+    if recent_session == [] do
       start_email_verification(resident, ip_addr)
     else
       [{session_id, updated_at}] = recent_session
@@ -180,6 +183,25 @@ defmodule BldgServer.Residents do
   """
   def move(%Resident{} = resident, location, x, y) do
     changes = %{location: location, x: x, y: y}
+    update_resident(resident, changes)
+  end
+
+  def enter_bldg(%Resident{} = resident, address) do
+    {initial_x, initial_y} = {8, 40}  # TODO read from config, per bldg type
+    changes = %{flr: "#{address}/l0", location: "#{address}/l0/b(#{initial_x},#{initial_y})", x: initial_x, y: initial_y}
+    update_resident(resident, changes)
+  end
+
+  def exit_bldg(%Resident{} = resident, address) do
+    # get the container flr
+    container_flr = Buildings.get_container_flr(address)
+
+    # determine the location next to the door of the bldg exited
+    {x, y} = Buildings.extract_coords(address)
+    new_x = x
+    new_y = y + 6
+
+    changes = %{flr: container_flr, location: "#{container_flr}/b(#{new_x},#{new_y})", x: new_x, y: new_y}
     update_resident(resident, changes)
   end
 
