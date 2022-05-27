@@ -59,7 +59,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         # validate that the actor resident/bldg has the sufficient permissions
         container_bldg = Buildings.get_flr_bldg(msg["say_flr"]) |> Buildings.get_bldg!()
         if Enum.find(container_bldg.owners, fn x -> x == msg["resident_email"] end) == nil do
-          raise "#{msg["resident_email"]} is not authorized to create bldgs inside #{container_bldg.web_url}"
+          raise "#{msg["resident_email"]} is not authorized to create roads inside #{container_bldg.web_url}"
         else
           # TODO return proper errors
 
