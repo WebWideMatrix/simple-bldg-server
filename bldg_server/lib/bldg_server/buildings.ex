@@ -144,14 +144,28 @@ defmodule BldgServer.Buildings do
     {x, y + offset}
   end
 
-  def get_container_flr(addr) do
-    # returns the container flr for given address. TODO verify that a bldg is given & not a flr
+
+  def get_container(addr) do
     addr
     |> String.split(address_delimiter)
     |> Enum.reverse()
     |> tl()
     |> Enum.reverse()
     |> Enum.join(address_delimiter)
+  end
+
+  def get_container_flr(addr) do
+    # returns the container flr for given address.
+    # TODO verify that a bldg is given & not a flr
+    # TODO if addr is g, return g? null?
+    get_container(addr)
+  end
+
+  def get_flr_bldg(flr) do
+    case flr do
+      "g" -> "g"
+      _ -> get_container(flr)
+    end
   end
 
 
