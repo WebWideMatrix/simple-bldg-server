@@ -16,7 +16,8 @@ defmodule BldgServer.Application do
       # {BldgServer.Worker, arg},
       BldgServerWeb.BldgCommandExecutor,
       # Start the http client
-      {Finch, name: FinchClient}
+      {Finch, name: FinchClient},
+      BldgServer.Vault
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

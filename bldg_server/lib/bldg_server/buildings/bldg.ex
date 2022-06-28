@@ -5,7 +5,7 @@ defmodule BldgServer.Buildings.Bldg do
   schema "bldgs" do
     field :address, :string
     field :category, :string
-    field :data, :map
+    field :data, :string
     field :entity_type, :string
     field :flr, :string
     field :is_composite, :boolean, default: false
