@@ -52,8 +52,9 @@ defmodule BldgServerWeb.BldgCommandExecutor do
       end
     end
 
-    # create road between 2 bldgs (given using their websites)
-    def execute_command(["/create", "road", "between", website1, "and", website2], msg) do
+    # create road between 2 bldgs (using their websites)
+    # TODO handle the case where there are multiple bldgs for the same website - check the ones owned by the user in order to resolve
+    def execute_command(["/connect", "between", website1, "and", website2], msg) do
         # create a road between the given bldgs, inside the given flr
 
         # validate that the actor resident/bldg has the sufficient permissions
