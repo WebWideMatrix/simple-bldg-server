@@ -4,7 +4,7 @@ defmodule BldgServer.MixProject do
   def project do
     [
       app: :bldg_server,
-      version: "0.5.0",
+      version: "0.5.4",
       elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
@@ -46,8 +46,7 @@ defmodule BldgServer.MixProject do
       {:json, "~> 1.4"},
       {:finch, "~> 0.7"},
       {:bamboo, "~> 1.7.1"},
-      {:bamboo_smtp, "~> 3.1.3"},
-      {:cloak_ecto, "~> 1.2.0"}
+      {:bamboo_smtp, "~> 3.1.3"}
     ]
   end
 
