@@ -72,6 +72,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
           {to_x, to_y} = Buildings.extract_coords(to_addr)
           road = %{
             "flr" => msg["say_flr"],
+            "flr_url" => msg["say_flr_url"],
             "from_address" => from_addr,
             "to_address" => to_addr,
             "from_x" => from_x,
@@ -98,6 +99,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
           {x, y} = Buildings.extract_coords(msg["say_location"]) |> Buildings.move_from_speaker(-10)
           entity = %{
             "flr" => msg["say_flr"],
+            "flr_url" => msg["say_flr_url"],
             "address" => msg["say_location"],
             "x" => x,
             "y" => y,
@@ -127,6 +129,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         {x, y} = Buildings.extract_coords(msg["say_location"]) |> Buildings.move_from_speaker(-10)
         entity = %{
           "flr" => msg["say_flr"],
+          "flr_url" => msg["say_flr_url"],
           "address" => msg["say_location"],
           "x" => x,
           "y" => y,
@@ -156,6 +159,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         {x, y} = Buildings.extract_coords(msg["say_location"]) |> Buildings.move_from_speaker(-10)
         entity = %{
           "flr" => msg["say_flr"],
+          "flr_url" => msg["say_flr_url"],
           "address" => msg["say_location"],
           "x" => x,
           "y" => y,
@@ -185,6 +189,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         {x, y} = Buildings.extract_coords(msg["say_location"]) |> Buildings.move_from_speaker(-10)
         entity = %{
           "flr" => msg["say_flr"],
+          "flr_url" => msg["say_flr_url"],
           "address" => msg["say_location"],
           "x" => x,
           "y" => y,
