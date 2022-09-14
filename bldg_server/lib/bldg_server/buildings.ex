@@ -54,6 +54,8 @@ defmodule BldgServer.Buildings do
 
   def get_by_web_url(url), do: Repo.get_by(Bldg, web_url: url)
 
+  def get_by_bldg_url(bldg_url), do: Repo.get_by(Bldg, bldg_url: bldg_url)
+
   def get_similar_entities(flr, entity_type) do
     q = from b in Bldg,
         where: b.flr == ^flr and b.entity_type == ^entity_type,
