@@ -314,7 +314,6 @@ Given an entity:
     |> Enum.drop(1) |> length()
     depth = case num_slashes do
       0 -> 0
-      1 -> 1
       _ -> (num_slashes + 1) / 2
     end
     Map.put(entity, "nesting_depth", depth)
