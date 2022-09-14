@@ -143,10 +143,10 @@ defmodule BldgServer.Buildings do
   end
 
   def extract_flr_level(flr) do
-    l_s = flr
-    |> String.split(address_delimiter)
-    |> List.last()
-    |> String.slice(1..-1)
+    l_s = case flr do
+      "g" -> "0"
+      _ -> flr |> String.split(address_delimiter) |> List.last() |> String.slice(1..-1)
+    end
     {level, ""} = Integer.parse(l_s)
     level
   end
@@ -212,7 +212,7 @@ defmodule BldgServer.Buildings do
         entity_bldg = Buildings.get_by_bldg_url(container)
         {"#{entity_bldg.address}#{Buildings.address_delimiter}l0", "#{entity_bldg.bldg_url}#{Buildings.address_delimiter}l0", 0}
       Map.has_key?(entity, "flr") and Map.has_key?(entity, "flr_url") ->
-        level = extract_flr_level(Map.has_key?(entity, "flr"))
+        level = extract_flr_level(Map.get(entity, "flr"))
         {Map.get(entity, "flr"), Map.get(entity, "flr_url"), level}
       true -> {"g", "g", 0}
     end
@@ -226,7 +226,7 @@ defmodule BldgServer.Buildings do
       Map.has_key?(entity, "bldg_url") ->
         Map.get(entity, "bldg_url")
       Map.has_key?(entity, "flr_url") and Map.has_key?(entity, "name") ->
-        "#{Map.get(entity, "flr_url")}#{Buildings.address_delimiter}#{Map.get(entity, "name")}"
+        "#{Map.get(entity, "flr_url")}#{address_delimiter}#{Map.get(entity, "name")}"
       true ->
         "g"
     end
