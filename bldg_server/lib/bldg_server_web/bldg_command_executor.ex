@@ -152,15 +152,20 @@ defmodule BldgServerWeb.BldgCommandExecutor do
 
     # create bldg with entity-type, name & summary
     def execute_command(["/create", entity_type, "bldg", "with", "name", name, "and", "summary" | summary_tokens], msg) do
+
+      IO.puts("~~~~~ executing command create bldg")
+
       # create a bldg with the given entity-type, name & summary, inside the given flr & bldg
 
       # validate that the actor resident/bldg has the sufficient permissions
       container_bldg = Buildings.get_flr_bldg(msg["say_flr"]) |> Buildings.get_bldg!()
       if Enum.find(container_bldg.owners, fn x -> x == msg["resident_email"] end) == nil do
+        IO.puts("~~~~~ Unauthorized")
         raise "#{msg["resident_email"]} is not authorized to create bldgs inside #{container_bldg.web_url}"
       else
         # TODO if creating under a given bldg, send its container_web_url instead of flr
 
+        IO.puts("~~~~~ continue creating bldg")
         {x, y} = Buildings.extract_coords(msg["say_location"]) |> Buildings.move_from_speaker(-10)
         entity = %{
           "flr" => msg["say_flr"],
@@ -174,8 +179,10 @@ defmodule BldgServerWeb.BldgCommandExecutor do
           "state" =>  "approved",
           "owners" => [msg["resident_email"]]
         }
-        Buildings.build(entity)
-        |> Buildings.create_bldg()
+        new_bldg = Buildings.build(entity)
+        IO.puts("~~~~~~~~~~~ Entity to be created:")
+        IO.inspect(new_bldg)
+        Buildings.create_bldg(new_bldg)
       end
     end
 

@@ -76,6 +76,7 @@ defmodule BldgServer.Buildings do
 
   """
   def create_bldg(attrs \\ %{}) do
+    # TODO surface any changeset errors
     %Bldg{}
     |> Bldg.changeset(attrs)
     |> Repo.insert()
@@ -201,6 +202,7 @@ defmodule BldgServer.Buildings do
   TODO simplify
   """
   def figure_out_flr(entity) do
+    IO.puts("~~~~~ Figuring out flr")
     {flr, flr_url, flr_level} = cond do
       Map.has_key?(entity, "container_web_url") ->
         %{"container_web_url" => container} = entity
@@ -222,6 +224,7 @@ defmodule BldgServer.Buildings do
   end
 
   def figure_out_bldg_url(entity) do
+    IO.puts("~~~~~ Figuring out bldg_url")
     bldg_url = cond do
       Map.has_key?(entity, "bldg_url") ->
         Map.get(entity, "bldg_url")
@@ -304,6 +307,20 @@ Given an entity:
     # TODO handle the case where the location is already caught
   end
 
+
+  def calculate_nesting_depth(entity) do
+    num_slashes = Map.get(entity, "address")
+    |> String.split(address_delimiter)
+    |> Enum.drop(1) |> length()
+    depth = case num_slashes do
+      0 -> 0
+      1 -> 1
+      _ -> (num_slashes + 1) / 2
+    end
+    Map.put(entity, "nesting_depth", depth)
+  end
+
+
   def remove_build_params(entity) do
     Map.delete(entity, "container_web_url")
   end
@@ -339,6 +356,7 @@ Given an entity:
     |> figure_out_flr()
     |> figure_out_bldg_url()
     |> decide_on_location()
+    |> calculate_nesting_depth()
     |> remove_build_params()
   end
 
