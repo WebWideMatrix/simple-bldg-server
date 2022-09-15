@@ -186,22 +186,23 @@ defmodule BldgServer.Residents do
     update_resident(resident, changes)
   end
 
-  def enter_bldg(%Resident{} = resident, address) do
+  def enter_bldg(%Resident{} = resident, address, bldg_url) do
     {initial_x, initial_y} = {8, 40}  # TODO read from config, per bldg type
-    changes = %{flr: "#{address}/l0", location: "#{address}/l0/b(#{initial_x},#{initial_y})", x: initial_x, y: initial_y}
+    changes = %{flr: "#{address}/l0", flr_url: "#{bldg_url}/l0", location: "#{address}/l0/b(#{initial_x},#{initial_y})", x: initial_x, y: initial_y}
     update_resident(resident, changes)
   end
 
-  def exit_bldg(%Resident{} = resident, address) do
+  def exit_bldg(%Resident{} = resident, address, bldg_url) do
     # get the container flr
     container_flr = Buildings.get_container_flr(address)
+    container_flr_url = Buildings.get_container_flr_url(bldg_url)
 
     # determine the location next to the door of the bldg exited
     {x, y} = Buildings.extract_coords(address)
     new_x = x
     new_y = y + 6
 
-    changes = %{flr: container_flr, location: "#{container_flr}/b(#{new_x},#{new_y})", x: new_x, y: new_y}
+    changes = %{flr: container_flr, flr_url: container_flr_url, location: "#{container_flr}/b(#{new_x},#{new_y})", x: new_x, y: new_y}
     update_resident(resident, changes)
   end
 

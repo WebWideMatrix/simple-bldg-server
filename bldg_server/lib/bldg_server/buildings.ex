@@ -173,6 +173,13 @@ defmodule BldgServer.Buildings do
     get_container(addr)
   end
 
+  def get_container_flr_url(bldg_url) do
+    # returns the container flr url for given bldg url.
+    # TODO verify that a bldg is given & not a flr
+    # TODO if bldg url is g, return g? null?
+    get_container(bldg_url)
+  end
+
   def get_flr_bldg(flr) do
     case flr do
       "g" -> "g"
