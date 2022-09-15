@@ -54,6 +54,8 @@ defmodule BldgServer.Buildings do
 
   def get_by_web_url(url), do: Repo.get_by(Bldg, web_url: url)
 
+  def get_by_bldg_url(bldg_url), do: Repo.get_by(Bldg, bldg_url: bldg_url)
+
   def get_similar_entities(flr, entity_type) do
     q = from b in Bldg,
         where: b.flr == ^flr and b.entity_type == ^entity_type,
@@ -74,9 +76,14 @@ defmodule BldgServer.Buildings do
 
   """
   def create_bldg(attrs \\ %{}) do
-    %Bldg{}
+    cs = %Bldg{}
     |> Bldg.changeset(attrs)
-    |> Repo.insert()
+    case cs.errors do
+      [] -> Repo.insert(cs)
+      _ ->
+        IO.inspect(cs.errors)
+        raise "Failed to prepare bldg for writing to database"
+    end
   end
 
   @doc """
@@ -140,6 +147,15 @@ defmodule BldgServer.Buildings do
     {x, y}
   end
 
+  def extract_flr_level(flr) do
+    l_s = case flr do
+      "g" -> "0"
+      _ -> flr |> String.split(address_delimiter) |> List.last() |> String.slice(1..-1)
+    end
+    {level, ""} = Integer.parse(l_s)
+    level
+  end
+
   def move_from_speaker({x, y}, offset) do
     {x, y + offset}
   end
@@ -161,6 +177,13 @@ defmodule BldgServer.Buildings do
     get_container(addr)
   end
 
+  def get_container_flr_url(bldg_url) do
+    # returns the container flr url for given bldg url.
+    # TODO verify that a bldg is given & not a flr
+    # TODO if bldg url is g, return g? null?
+    get_container(bldg_url)
+  end
+
   def get_flr_bldg(flr) do
     case flr do
       "g" -> "g"
@@ -172,19 +195,56 @@ defmodule BldgServer.Buildings do
   # FRAMEWORK
 
 
+  """
+  Determines the flr of a new entity to be created
+  Calculates the following fields:
+  - flr (address)
+  - flr_url (bldg_url of the flr)
+  -  flr_level (flr number)
+  And returns the given entity with these 3 additional fields
+
+  Supports 3 modes:
+  1. Receiving just container bldg address -> flr would be l0 on that bldg
+  2. Receiving just container bldg url -> flr would be l0 on that bldg
+  3. Receiving the flr & flr_url -> no need to figure out, just extract the flr level
+
+  Note that providing just flr or flr_url isn't currently supported.
+
+  TODO simplify
+  """
   def figure_out_flr(entity) do
-    flr = cond do
+    {flr, flr_url, flr_level} = cond do
       Map.has_key?(entity, "container_web_url") ->
         %{"container_web_url" => container} = entity
         entity_bldg = Buildings.get_by_web_url(container)
         # TODO handle the case the container bldg doesn't exist
-        "#{entity_bldg.address}#{Buildings.address_delimiter}l0"
-      Map.has_key?(entity, "flr") ->
-        Map.get(entity, "flr")
-      true -> "g"
+        {"#{entity_bldg.address}#{Buildings.address_delimiter}l0", "#{entity_bldg.bldg_url}#{Buildings.address_delimiter}l0", 0}
+      Map.has_key?(entity, "container_bldg_url") ->
+        %{"container_bldg_url" => container} = entity
+        entity_bldg = Buildings.get_by_bldg_url(container)
+        {"#{entity_bldg.address}#{Buildings.address_delimiter}l0", "#{entity_bldg.bldg_url}#{Buildings.address_delimiter}l0", 0}
+      Map.has_key?(entity, "flr") and Map.has_key?(entity, "flr_url") ->
+        level = extract_flr_level(Map.get(entity, "flr"))
+        {Map.get(entity, "flr"), Map.get(entity, "flr_url"), level}
+      true -> raise "Not enought information to determine where to create the bldg - you need to provide either: container_web_url or container_bldg_url or (flr AND flr_url)"
     end
     Map.put(entity, "flr", flr)
+    Map.put(entity, "flr_url", flr_url)
+    Map.put(entity, "flr_level", flr_level)
   end
+
+  def figure_out_bldg_url(entity) do
+    bldg_url = cond do
+      Map.has_key?(entity, "bldg_url") ->
+        Map.get(entity, "bldg_url")
+      Map.has_key?(entity, "flr_url") and Map.has_key?(entity, "name") ->
+        "#{Map.get(entity, "flr_url")}#{address_delimiter}#{Map.get(entity, "name")}"
+      true ->
+        "g"
+    end
+    Map.put(entity, "bldg_url", bldg_url)
+  end
+
 
 """
 next_location(similar_bldgs)
@@ -256,6 +316,19 @@ Given an entity:
     # TODO handle the case where the location is already caught
   end
 
+
+  def calculate_nesting_depth(entity) do
+    num_slashes = Map.get(entity, "address")
+    |> String.split(address_delimiter)
+    |> Enum.drop(1) |> length()
+    depth = case num_slashes do
+      0 -> 0
+      _ -> trunc((num_slashes + 1) / 2)
+    end
+    Map.put(entity, "nesting_depth", depth)
+  end
+
+
   def remove_build_params(entity) do
     Map.delete(entity, "container_web_url")
   end
@@ -289,7 +362,9 @@ Given an entity:
   def build(entity) do
     bldg_params = entity
     |> figure_out_flr()
+    |> figure_out_bldg_url()
     |> decide_on_location()
+    |> calculate_nesting_depth()
     |> remove_build_params()
   end
 

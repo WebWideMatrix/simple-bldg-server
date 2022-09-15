@@ -16,12 +16,16 @@ defmodule BldgServerWeb.BldgView do
 
   def render("bldg.json", %{bldg: bldg}) do
     %{id: bldg.id,
+      bldg_url: bldg.bldg_url,
       address: bldg.address,
+      name: bldg.name,
       flr: bldg.flr,
+      flr_url: bldg.flr_url,
+      flr_level: bldg.flr_level,
+      nesting_depth: bldg.nesting_depth,
       x: bldg.x,
       y: bldg.y,
       is_composite: bldg.is_composite,
-      name: bldg.name,
       web_url: bldg.web_url,
       entity_type: bldg.entity_type,
       state: bldg.state,

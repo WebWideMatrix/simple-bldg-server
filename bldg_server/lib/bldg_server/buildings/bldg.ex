@@ -18,6 +18,10 @@ defmodule BldgServer.Buildings.Bldg do
     field :x, :integer
     field :y, :integer
     field :owners, {:array, :string}
+    field :bldg_url, :string
+    field :flr_url, :string
+    field :flr_level, :integer
+    field :nesting_depth, :integer
 
     timestamps()
   end
@@ -25,9 +29,9 @@ defmodule BldgServer.Buildings.Bldg do
   @doc false
   def changeset(bldg, attrs) do
     bldg
-    |> cast(attrs, [:address, :flr, :x, :y, :is_composite, :name, :web_url, :entity_type, :state, :category, :tags, :summary, :picture_url, :data, :owners])
-    |> validate_required([:address, :flr, :x, :y, :is_composite, :name, :web_url, :entity_type])
+    |> cast(attrs, [:address, :flr, :x, :y, :is_composite, :name, :web_url, :entity_type, :state, :category, :tags, :summary, :picture_url, :data, :owners, :bldg_url, :flr_url, :flr_level, :nesting_depth])
+    |> validate_required([:bldg_url, :address, :flr, :x, :y, :is_composite, :name, :entity_type, :flr_url, :flr_level, :nesting_depth])
     |> unique_constraint(:address)
-    |> unique_constraint(:web_url)
+    |> unique_constraint(:bldg_url)
   end
 end

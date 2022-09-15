@@ -26,6 +26,7 @@ bldg_server-*.tar
 # we ignore priv/static. You may want to comment
 # this depending on your deployment strategy.
 /priv/static/
+/priv/cert
 
 .env
 .env-stack
