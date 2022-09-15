@@ -76,10 +76,14 @@ defmodule BldgServer.Buildings do
 
   """
   def create_bldg(attrs \\ %{}) do
-    # TODO surface any changeset errors
-    %Bldg{}
+    cs = %Bldg{}
     |> Bldg.changeset(attrs)
-    |> Repo.insert()
+    case cs.errors do
+      [] -> Repo.insert(cs)
+      _ ->
+        IO.inspect(cs.errors)
+        raise "Failed to prepare bldg for writing to database"
+    end
   end
 
   @doc """
@@ -209,7 +213,6 @@ defmodule BldgServer.Buildings do
   TODO simplify
   """
   def figure_out_flr(entity) do
-    IO.puts("~~~~~ Figuring out flr")
     {flr, flr_url, flr_level} = cond do
       Map.has_key?(entity, "container_web_url") ->
         %{"container_web_url" => container} = entity
@@ -223,7 +226,7 @@ defmodule BldgServer.Buildings do
       Map.has_key?(entity, "flr") and Map.has_key?(entity, "flr_url") ->
         level = extract_flr_level(Map.get(entity, "flr"))
         {Map.get(entity, "flr"), Map.get(entity, "flr_url"), level}
-      true -> {"g", "g", 0}
+      true -> raise "Not enought information to determine where to create the bldg - you need to provide either: container_web_url or container_bldg_url or (flr AND flr_url)"
     end
     Map.put(entity, "flr", flr)
     Map.put(entity, "flr_url", flr_url)
@@ -231,7 +234,6 @@ defmodule BldgServer.Buildings do
   end
 
   def figure_out_bldg_url(entity) do
-    IO.puts("~~~~~ Figuring out bldg_url")
     bldg_url = cond do
       Map.has_key?(entity, "bldg_url") ->
         Map.get(entity, "bldg_url")
@@ -321,7 +323,7 @@ Given an entity:
     |> Enum.drop(1) |> length()
     depth = case num_slashes do
       0 -> 0
-      _ -> (num_slashes + 1) / 2
+      _ -> trunc((num_slashes + 1) / 2)
     end
     Map.put(entity, "nesting_depth", depth)
   end
