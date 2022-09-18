@@ -25,6 +25,16 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         String.split(msg_text, " ")
     end
 
+    def determine_wallpaper_based_on_location(x, _y) do
+      cond do
+        x > 80 -> 1
+        x <= 80 and x > 46 -> 2
+        x <= 46 and x > 6 -> 3
+        x <= 6 and x > -32 -> 4
+        x <= -32 -> 5
+      end
+    end
+
     def execute_command(["/add", "owner", email, "to", "bldg", name], msg) do
       flr_url = msg["say_flr_url"]
       bldg_url = "#{flr_url}#{Buildings.address_delimiter}#{name}"
@@ -299,12 +309,12 @@ defmodule BldgServerWeb.BldgCommandExecutor do
       bldg = Buildings.get_by_bldg_url(bldg_url)
       IO.puts("~~~~~~ promoted bldg has picture-url? #{bldg.picture_url}")
       # determine nearest wallpaper
-      wallpaper_num = 2   # TODO implement
+      wallpaper_num = determine_wallpaper_based_on_location(x, y)
       # get the container bldg
       container_bldg_url = Buildings.get_container(flr_url)
       container = Buildings.get_by_bldg_url(container_bldg_url)
       # TODO check whether promoted bldg indeed has picture_url
-      {_, data} = Jason.decode(container.data)
+      {_, data} = Jason.decode(container.data || "{}")
       {_, new_data} = Map.merge(data, %{"promoted-inside-#{wallpaper_num}-picture-url" => bldg.picture_url}) |> Jason.encode()
       # update bldg
       Buildings.update_bldg(container, %{"data" => new_data})
