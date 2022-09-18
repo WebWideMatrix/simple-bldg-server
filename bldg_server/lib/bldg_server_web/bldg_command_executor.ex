@@ -1,6 +1,7 @@
 defmodule BldgServerWeb.BldgCommandExecutor do
     use GenServer
     require Logger
+    alias Jason
     alias BldgServer.PubSub
     alias BldgServer.Buildings
     alias BldgServer.Relations
@@ -285,6 +286,38 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         Buildings.update_bldg(bldg, %{"address" => msg["say_location"], "x" => x, "y" => y})
       end
     end
+
+
+    # promote bldg inside
+    def execute_command(["/promote", "bldg", name, "inside"], msg) do
+      IO.puts("~~~~~ Handling bldg promotion inside")
+      # get speaker location (we'll need it to determine which wallpaper to set)
+      {x, y} = Buildings.extract_coords(msg["say_location"])
+      # get the promoted bldg
+      flr_url = msg["say_flr_url"]
+      bldg_url = "#{flr_url}#{Buildings.address_delimiter}#{name}"
+      bldg = Buildings.get_by_bldg_url(bldg_url)
+      IO.puts("~~~~~~ promoted bldg has picture-url? #{bldg.picture_url}")
+      # determine nearest wallpaper
+      wallpaper_num = 2   # TODO implement
+      # get the container bldg
+      container_bldg_url = Buildings.get_container(flr_url)
+      container = Buildings.get_by_bldg_url(container_bldg_url)
+      # TODO check whether promoted bldg indeed has picture_url
+      {_, data} = Jason.decode(container.data)
+      {_, new_data} = Map.merge(data, %{"promoted-inside-#{wallpaper_num}-picture-url" => bldg.picture_url}) |> Jason.encode()
+      # update bldg
+      Buildings.update_bldg(container, %{"data" => new_data})
+    end
+
+
+    # promote bldg inside
+    def execute_command(["/demote", "bldg", name, "inside"], msg) do
+      IO.puts("~~~~~ Handling bldg demotion inside")
+      {x, y} = Buildings.extract_coords(msg["say_location"])
+      IO.puts("~~~~~~~~ Speaker location is (#{x}, #{y})")
+    end
+
 
     #def handle_info({sender, message, flr}, state) do
     def handle_info(%{event: "new_message", payload: new_message}, state) do
