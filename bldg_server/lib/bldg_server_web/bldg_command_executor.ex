@@ -307,25 +307,50 @@ defmodule BldgServerWeb.BldgCommandExecutor do
       flr_url = msg["say_flr_url"]
       bldg_url = "#{flr_url}#{Buildings.address_delimiter}#{name}"
       bldg = Buildings.get_by_bldg_url(bldg_url)
-      IO.puts("~~~~~~ promoted bldg has picture-url? #{bldg.picture_url}")
-      # determine nearest wallpaper
-      wallpaper_num = determine_wallpaper_based_on_location(x, y)
-      # get the container bldg
-      container_bldg_url = Buildings.get_container(flr_url)
-      container = Buildings.get_by_bldg_url(container_bldg_url)
-      # TODO check whether promoted bldg indeed has picture_url
-      {_, data} = Jason.decode(container.data || "{}")
-      {_, new_data} = Map.merge(data, %{"promoted-inside-#{wallpaper_num}-picture-url" => bldg.picture_url}) |> Jason.encode()
-      # update bldg
-      Buildings.update_bldg(container, %{"data" => new_data})
+      picture_url = bldg.picture_url
+      cond do
+        picture_url == nil -> raise "Promoted entity has no picture URL"
+        true ->
+            # determine nearest wallpaper
+            wallpaper_num = determine_wallpaper_based_on_location(x, y)
+            # get the container bldg
+            container_bldg_url = Buildings.get_container(flr_url)
+            container = Buildings.get_by_bldg_url(container_bldg_url)
+            {_, data} = Jason.decode(container.data || "{}")
+            {_, new_data} = Map.merge(data, %{"promoted-inside-#{wallpaper_num}-picture-url" => bldg.picture_url}) |> Jason.encode()
+            # update bldg
+            Buildings.update_bldg(container, %{"data" => new_data})
+        end
     end
 
 
-    # promote bldg inside
+    # demote bldg inside
     def execute_command(["/demote", "bldg", name, "inside"], msg) do
       IO.puts("~~~~~ Handling bldg demotion inside")
-      {x, y} = Buildings.extract_coords(msg["say_location"])
-      IO.puts("~~~~~~~~ Speaker location is (#{x}, #{y})")
+      # get the promoted bldg
+      flr_url = msg["say_flr_url"]
+      bldg_url = "#{flr_url}#{Buildings.address_delimiter}#{name}"
+      bldg = Buildings.get_by_bldg_url(bldg_url)
+      IO.puts("~~~~~~ promoted bldg has picture-url? #{bldg.picture_url}")
+      picture_url = bldg.picture_url
+      cond do
+        picture_url == nil ->
+          raise "Demoted entity has no picture URL"
+        true ->
+            # get the container bldg
+            container_bldg_url = Buildings.get_container(flr_url)
+            container = Buildings.get_by_bldg_url(container_bldg_url)
+            {_, data} = Jason.decode(container.data || "{}")
+            # find the key matching the picture-url
+            data_key = data
+            |> Enum.find(fn {key, val} -> val == picture_url end)
+            |> elem(0)
+            IO.puts("~~~~~~~~~~~ Found promoted entity key to delete: #{data_key}")
+            # TODO check that key exists
+            {_, new_data} = Map.delete(data, data_key) |> Jason.encode()
+            # update bldg
+            Buildings.update_bldg(container, %{"data" => new_data})
+        end
     end
 
 
