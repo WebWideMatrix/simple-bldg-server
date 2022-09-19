@@ -26,12 +26,13 @@ defmodule BldgServerWeb.BldgCommandExecutor do
     end
 
     def determine_wallpaper_based_on_location(x, _y) do
+      # TODO generalize a bit
       cond do
         x > 80 -> 1
-        x <= 80 and x > 46 -> 2
-        x <= 46 and x > 6 -> 3
-        x <= 6 and x > -32 -> 4
-        x <= -32 -> 5
+        x <= 80 and x > 66 -> 2
+        x <= 66 and x > 18 -> 3
+        x <= 18 and x > -28 -> 4
+        x <= -28 -> 5
       end
     end
 
