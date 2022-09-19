@@ -361,7 +361,6 @@ defmodule BldgServerWeb.BldgCommandExecutor do
 
     # promote bldg inside
     def execute_command(["/promote", "bldg", name, "inside"], msg) do
-      IO.puts("~~~~~ Handling bldg promotion inside")
       # get speaker location (we'll need it to determine which wallpaper to set)
       {x, y} = Buildings.extract_coords(msg["say_location"])
       # get the promoted bldg
@@ -387,12 +386,10 @@ defmodule BldgServerWeb.BldgCommandExecutor do
 
     # demote bldg inside
     def execute_command(["/demote", "bldg", name, "inside"], msg) do
-      IO.puts("~~~~~ Handling bldg demotion inside")
       # get the promoted bldg
       flr_url = msg["say_flr_url"]
       bldg_url = "#{flr_url}#{Buildings.address_delimiter}#{name}"
       bldg = Buildings.get_by_bldg_url(bldg_url)
-      IO.puts("~~~~~~ promoted bldg has picture-url? #{bldg.picture_url}")
       picture_url = bldg.picture_url
       cond do
         picture_url == nil ->
@@ -404,9 +401,8 @@ defmodule BldgServerWeb.BldgCommandExecutor do
             {_, data} = Jason.decode(container.data || "{}")
             # find the key matching the picture-url
             data_key = data
-            |> Enum.find(fn {key, val} -> val == picture_url end)
+            |> Enum.find(fn {_, val} -> val == picture_url end)
             |> elem(0)
-            IO.puts("~~~~~~~~~~~ Found promoted entity key to delete: #{data_key}")
             # TODO check that key exists
             {_, new_data} = Map.delete(data, data_key) |> Jason.encode()
             # update bldg
