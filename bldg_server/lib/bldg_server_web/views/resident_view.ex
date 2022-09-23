@@ -24,6 +24,7 @@ defmodule BldgServerWeb.ResidentView do
       location: resident.location,
       flr: resident.flr,
       flr_url: resident.flr_url,
+      nesting_depth: resident.nesting_depth,
       x: resident.x,
       y: resident.y,
       direction: resident.direction,

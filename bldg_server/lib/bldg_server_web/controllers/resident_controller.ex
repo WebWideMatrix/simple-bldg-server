@@ -162,6 +162,8 @@ defmodule BldgServerWeb.ResidentController do
     # TODO validate that the resident is authorized to enter the given bldg
 
     with {:ok, %Resident{} = upd_rsdt} <- Residents.enter_bldg(resident, address, bldg_url, flr) do
+      IO.puts("~~~~~~~~~~~ enter bldg done, resident returned:")
+      IO.inspect(upd_rsdt)
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, upd_rsdt))
@@ -175,6 +177,8 @@ defmodule BldgServerWeb.ResidentController do
     # TODO validate that the resident is authorized to enter the container bldg (although if not, are they essentially locked?)
 
     with {:ok, %Resident{} = upd_rsdt} <- Residents.exit_bldg(resident, address, bldg_url) do
+      IO.puts("~~~~~~~~~~~ exit bldg done, resident returned:")
+      IO.inspect(upd_rsdt)
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, upd_rsdt))
