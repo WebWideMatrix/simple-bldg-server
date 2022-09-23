@@ -187,7 +187,10 @@ defmodule BldgServer.Residents do
   end
 
   def enter_bldg(%Resident{} = resident, address, bldg_url, flr) do
+    IO.puts("~~~~~ 1")
     container_bldg = Buildings.get_by_bldg_url(bldg_url)
+    IO.puts("~~~~~ 2")
+    IO.inspect(container_bldg)
 
     {initial_x, initial_y} = {8, 40}  # TODO read from config, per bldg type
     changes = %{
@@ -199,6 +202,7 @@ defmodule BldgServer.Residents do
       nesting_depth: Buildings.calculate_nesting_depth(address),
       container_entity_type: container_bldg.entity_type
     }
+    IO.inspect(changes)
     update_resident(resident, changes)
   end
 
