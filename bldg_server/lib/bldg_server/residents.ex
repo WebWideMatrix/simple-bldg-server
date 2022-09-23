@@ -210,8 +210,8 @@ defmodule BldgServer.Residents do
     # get the container flr
     container_flr = Buildings.get_container_flr(address)
     container_flr_url = Buildings.get_container_flr_url(bldg_url)
-
-    container_bldg = Buildings.get_by_bldg_url(container_flr_url)
+    container_bldg_url = Buildings.get_container(container_flr_url)
+    container_bldg = Buildings.get_by_bldg_url(container_bldg_url)
 
     # determine the location next to the door of the bldg exited
     {x, y} = Buildings.extract_coords(address)
