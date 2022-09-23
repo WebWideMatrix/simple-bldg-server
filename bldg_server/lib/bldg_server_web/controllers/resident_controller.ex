@@ -157,13 +157,11 @@ defmodule BldgServerWeb.ResidentController do
   end
 
   # ENTER_BLDG action
-  def act(conn, %{"resident_email" => email, "action_type" => "ENTER_BLDG", "bldg_address" => address, "bldg_url" => bldg_url, "flr" => flr}) do
+  def act(conn, %{"resident_email" => email, "action_type" => "ENTER_BLDG", "bldg_address" => address, "bldg_url" => bldg_url, "flr" => flr, "container_entity_type" => container_entity_type}) do
     resident = Residents.get_resident_by_email!(email)
     # TODO validate that the resident is authorized to enter the given bldg
 
-    with {:ok, %Resident{} = upd_rsdt} <- Residents.enter_bldg(resident, address, bldg_url, flr) do
-      IO.puts("~~~~~~~~~~~ enter bldg done, resident returned:")
-      IO.inspect(upd_rsdt)
+    with {:ok, %Resident{} = upd_rsdt} <- Residents.enter_bldg(resident, address, bldg_url, flr, container_entity_type) do
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, upd_rsdt))

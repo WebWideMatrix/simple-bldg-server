@@ -187,6 +187,8 @@ defmodule BldgServer.Residents do
   end
 
   def enter_bldg(%Resident{} = resident, address, bldg_url, flr) do
+    container_bldg = Buildings.get_by_bldg_url(bldg_url)
+
     {initial_x, initial_y} = {8, 40}  # TODO read from config, per bldg type
     changes = %{
       flr: "#{address}/#{flr}",
@@ -194,7 +196,8 @@ defmodule BldgServer.Residents do
       location: "#{address}/#{flr}/b(#{initial_x},#{initial_y})",
       x: initial_x,
       y: initial_y,
-      nesting_depth: Buildings.calculate_nesting_depth(address)
+      nesting_depth: Buildings.calculate_nesting_depth(address),
+      container_entity_type: container_bldg.entity_type
     }
     update_resident(resident, changes)
   end
@@ -203,6 +206,8 @@ defmodule BldgServer.Residents do
     # get the container flr
     container_flr = Buildings.get_container_flr(address)
     container_flr_url = Buildings.get_container_flr_url(bldg_url)
+
+    container_bldg = Buildings.get_by_bldg_url(container_flr_url)
 
     # determine the location next to the door of the bldg exited
     {x, y} = Buildings.extract_coords(address)
@@ -215,7 +220,8 @@ defmodule BldgServer.Residents do
       location: "#{container_flr}/b(#{new_x},#{new_y})",
       x: new_x,
       y: new_y,
-      nesting_depth: Buildings.calculate_nesting_depth(container_flr)
+      nesting_depth: Buildings.calculate_nesting_depth(container_flr),
+      container_entity_type: container_bldg.entity_type
     }
     update_resident(resident, changes)
   end
