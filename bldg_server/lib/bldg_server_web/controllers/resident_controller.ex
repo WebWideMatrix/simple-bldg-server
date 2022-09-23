@@ -156,12 +156,17 @@ defmodule BldgServerWeb.ResidentController do
     end
   end
 
-  # ENTER_BLDG action
+  # ENTER_BLDG action - without flr (defaulting to l0)
   def act(conn, %{"resident_email" => email, "action_type" => "ENTER_BLDG", "bldg_address" => address, "bldg_url" => bldg_url}) do
+    act(conn, %{"resident_email" => email, "action_type" => "ENTER_BLDG", "bldg_address" => address, "bldg_url" => bldg_url, "flr" => "l0"})
+  end
+
+  # ENTER_BLDG action
+  def act(conn, %{"resident_email" => email, "action_type" => "ENTER_BLDG", "bldg_address" => address, "bldg_url" => bldg_url, "flr" => flr}) do
     resident = Residents.get_resident_by_email!(email)
     # TODO validate that the resident is authorized to enter the given bldg
 
-    with {:ok, %Resident{} = upd_rsdt} <- Residents.enter_bldg(resident, address, bldg_url) do
+    with {:ok, %Resident{} = upd_rsdt} <- Residents.enter_bldg(resident, address, bldg_url, flr) do
       conn
       |> put_status(:ok)
       |> put_resp_header("location", Routes.resident_path(conn, :show, upd_rsdt))
