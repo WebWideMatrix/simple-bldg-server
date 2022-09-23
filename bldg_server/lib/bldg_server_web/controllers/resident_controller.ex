@@ -156,11 +156,6 @@ defmodule BldgServerWeb.ResidentController do
     end
   end
 
-  # ENTER_BLDG action - without flr (defaulting to l0)
-  def act(conn, %{"resident_email" => email, "action_type" => "ENTER_BLDG", "bldg_address" => address, "bldg_url" => bldg_url}) do
-    act(conn, %{"resident_email" => email, "action_type" => "ENTER_BLDG", "bldg_address" => address, "bldg_url" => bldg_url, "flr" => "l0"})
-  end
-
   # ENTER_BLDG action
   def act(conn, %{"resident_email" => email, "action_type" => "ENTER_BLDG", "bldg_address" => address, "bldg_url" => bldg_url, "flr" => flr}) do
     resident = Residents.get_resident_by_email!(email)
