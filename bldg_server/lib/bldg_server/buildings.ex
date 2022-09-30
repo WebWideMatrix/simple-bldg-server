@@ -317,17 +317,21 @@ Given an entity:
   end
 
 
-  def calculate_nesting_depth(entity) do
-    num_slashes = Map.get(entity, "address")
+  def calculate_nesting_depth(address) do
+    num_slashes = address
     |> String.split(address_delimiter)
-    |> Enum.drop(1) |> length()
-    depth = case num_slashes do
+    |> Enum.drop(1)
+    |> length()
+    case num_slashes do
       0 -> 0
       _ -> trunc((num_slashes + 1) / 2)
     end
-    Map.put(entity, "nesting_depth", depth)
   end
 
+  def set_nesting_depth(entity) do
+    depth = calculate_nesting_depth(Map.get(entity, "address"))
+    Map.put(entity, "nesting_depth", depth)
+  end
 
   def remove_build_params(entity) do
     Map.delete(entity, "container_web_url")
@@ -364,7 +368,7 @@ Given an entity:
     |> figure_out_flr()
     |> figure_out_bldg_url()
     |> decide_on_location()
-    |> calculate_nesting_depth()
+    |> set_nesting_depth()
     |> remove_build_params()
   end
 
