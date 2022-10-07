@@ -15,6 +15,7 @@ defmodule BldgServer.Application do
       # Starts a worker by calling: BldgServer.Worker.start_link(arg)
       # {BldgServer.Worker, arg},
       BldgServerWeb.BldgCommandExecutor,
+      BldgServerWeb.BatteryChatDispatcher,
       # Start the http client
       {Finch, name: FinchClient}
     ]

@@ -18,9 +18,12 @@ defmodule BldgServerWeb.Router do
     get "/residents/look/:flr", ResidentController, :look
     post "/residents/act", ResidentController, :act
     get "/roads/look/:flr", RoadController, :look
-    
+    post "/batteries/attach", BatteryController, :attach
+    post "/batteries/detach", BatteryController, :detach
+
     resources "/bldgs", BldgController, except: [:new, :edit], param: "address"
     resources "/residents", ResidentController, except: [:new, :edit]
     resources "/roads", RoadController, except: [:new, :edit]
+    resources "/batteries", BatteryController, except: [:new, :edit, :create], param: "bldg_address"
   end
 end
