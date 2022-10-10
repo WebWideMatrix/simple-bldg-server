@@ -20,6 +20,7 @@ defmodule BldgServerWeb.Router do
     get "/roads/look/:flr", RoadController, :look
     post "/batteries/attach", BatteryController, :attach
     post "/batteries/detach", BatteryController, :detach
+    post "/batteries/act", BldgController, :act
 
     resources "/bldgs", BldgController, except: [:new, :edit], param: "address"
     resources "/residents", ResidentController, except: [:new, :edit]
