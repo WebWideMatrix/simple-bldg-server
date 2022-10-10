@@ -13,7 +13,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
 
     def init(_) do
       Phoenix.PubSub.subscribe(PubSub, "chat")
-      IO.puts("subscribed")
+      IO.puts("~~~~~~~~~~~~ [bldg command executor] subscribed to chat")
       {:ok, %{}}
     end
 
@@ -415,7 +415,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
     #def handle_info({sender, message, flr}, state) do
     def handle_info(%{event: "new_message", payload: new_message}, state) do
       #Logger.info("chat message received at #{flr} from #{sender}: #{message}")
-      Logger.info("chat message received: #{new_message["message"]}")
+      Logger.info("~~~~~~~~~~~~ [bldg command executor] chat message received: #{new_message["message"]}")
 
       new_message["say_text"]
       |> parse_command()

@@ -12,7 +12,7 @@ defmodule BldgServerWeb.BatteryChatDispatcher do
 
   def init(_) do
     Phoenix.PubSub.subscribe(PubSub, "chat")
-    IO.puts("subscribed")
+    IO.puts("~~~~~~~~~~~ [battery chat dispatcher] subscribed to chat")
     {:ok, %{}}
   end
 
@@ -22,10 +22,11 @@ defmodule BldgServerWeb.BatteryChatDispatcher do
 
 
   def send_message_to_battery(callback_url, msg) do
-    Logger.info("About to invoke battery callback URL at: #{callback_url}")
+    Logger.info("~~~~~ About to invoke battery callback URL at: #{callback_url}")
     header_key = "content-type"
     header_val = "application/json"
     {_, msg_json} = Jason.encode(msg)
+    IO.inspect(msg_json)
     Finch.build(:post, callback_url, [{header_key, header_val}], msg_json)
     |> Finch.request(FinchClient)
     |> IO.inspect()
@@ -35,14 +36,17 @@ defmodule BldgServerWeb.BatteryChatDispatcher do
   #def handle_info({sender, message, flr}, state) do
   def handle_info(%{event: "new_message", payload: new_message}, state) do
     #Logger.info("chat message received at #{flr} from #{sender}: #{message}")
-    Logger.info("chat message received: #{new_message["message"]}")
+    Logger.info("~~~~~~~~~~~ [battery chat dispatcher] chat message received: #{new_message["message"]}")
 
     # query for all batteries inside that message flr
     # & invoke the callback url per each battery, with the message details in the body
 
-    batteries = ["flr"]
+    batteries = new_message["say_flr"]
     |> Batteries.get_batteries_in_floor()
-    |> Enum.map(fn b -> send_message_to_battery(b.callback_url, new_message) end)
+
+    IO.inspect(batteries)
+
+    Enum.map(batteries, fn b -> send_message_to_battery(b.callback_url, new_message) end)
 
     {:noreply, state}
   end
