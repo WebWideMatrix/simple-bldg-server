@@ -12,7 +12,7 @@ defmodule BldgServerWeb.BatteryView do
 
   def render("battery.json", %{battery: battery}) do
     %{id: battery.id,
-      bldg_address: battery.bldg_address,
+      bldg_url: battery.bldg_url,
       flr: battery.flr,
       callback_url: battery.callback_url,
       is_attached: battery.is_attached,

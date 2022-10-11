@@ -6,7 +6,7 @@ defmodule BldgServer.Batteries.Battery do
     field :battery_type, :string
     field :battery_vendor, :string
     field :battery_version, :string
-    field :bldg_address, :string
+    field :bldg_url, :string
     field :callback_url, :string
     field :direct_only, :boolean, default: false
     field :flr, :string
@@ -18,8 +18,8 @@ defmodule BldgServer.Batteries.Battery do
   @doc false
   def changeset(battery, attrs) do
     battery
-    |> cast(attrs, [:bldg_address, :flr, :callback_url, :is_attached, :direct_only, :battery_type, :battery_version, :battery_vendor])
-    |> validate_required([:bldg_address, :flr, :callback_url])
+    |> cast(attrs, [:bldg_url, :flr, :callback_url, :is_attached, :direct_only, :battery_type, :battery_version, :battery_vendor])
+    |> validate_required([:bldg_url, :flr, :callback_url])
     |> unique_constraint(:single_attached_battery_in_bldg, name: :single_attached_battery_in_bldg)
   end
 end

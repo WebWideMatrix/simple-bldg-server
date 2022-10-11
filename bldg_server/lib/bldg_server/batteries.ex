@@ -59,6 +59,25 @@ defmodule BldgServer.Batteries do
 
 
   @doc """
+  Gets a single battery by it's container bldg's url.
+
+  Raises `Ecto.NoResultsError` if the Battery does not exist.
+
+  ## Examples
+
+      iex> get_battery_by_bldg_url!("g/bldg_name")
+      %Battery{}
+
+      iex> get_battery_by_bldg_url!("g/bldg_name")
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_attached_battery_by_bldg_url!(bldg_url) do
+    clauses = [is_attached: :true, bldg_url: bldg_url]
+    Repo.get_by!(Battery, clauses)
+  end
+
+  @doc """
   Gets a single battery by it's container bldg's address.
 
   Raises `Ecto.NoResultsError` if the Battery does not exist.
@@ -76,7 +95,6 @@ defmodule BldgServer.Batteries do
     clauses = [is_attached: :true, bldg_address: bldg_address]
     Repo.get_by!(Battery, clauses)
   end
-
 
 
   @doc """

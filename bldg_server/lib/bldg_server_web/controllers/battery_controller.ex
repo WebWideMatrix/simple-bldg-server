@@ -23,9 +23,9 @@ defmodule BldgServerWeb.BatteryController do
     end
   end
 
-  def detach(conn, %{"bldg_address" => bldg_address}) do
-    IO.puts("Detaching battery from bldg at #{bldg_address}")
-    battery = Batteries.get_attached_battery_by_bldg_address!(bldg_address)
+  def detach(conn, %{"bldg_url" => bldg_url}) do
+    IO.puts("Detaching battery from bldg #{bldg_url}")
+    battery = Batteries.get_attached_battery_by_bldg_url!(bldg_url)
 
     with {:ok, %Battery{}} <- Batteries.delete_battery(battery) do
       send_resp(conn, :no_content, "")
