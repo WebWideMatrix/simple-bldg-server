@@ -35,6 +35,7 @@ defmodule BldgServerWeb.BldgView do
       picture_url: bldg.picture_url,
       owners: bldg.owners,
       previous_messages: bldg.previous_messages,
+      updated_at: bldg.updated_at,
       data: bldg.data}
   end
 end
