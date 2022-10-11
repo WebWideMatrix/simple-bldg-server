@@ -223,7 +223,9 @@ defmodule BldgServer.Residents do
 
 
   def say(%Resident{} = resident, msg) do
-    {_, text} = JSON.encode(msg)
+    {_, text} = msg
+    |> Map.merge(%{"say_time" => System.system_time(:millisecond)})
+    |> JSON.encode()
 
     new_prev_messages = append_message_to_list(resident.previous_messages, text)
     changes = %{previous_messages: new_prev_messages}

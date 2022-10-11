@@ -384,7 +384,9 @@ Given an entity:
 
   # TODO duplicate code, please consolidate
   def say(%Bldg{} = bldg, msg) do
-    {_, text} = JSON.encode(msg)
+    {_, text} = msg
+    |> Map.merge(%{"say_time" => System.system_time(:millisecond)})
+    |> JSON.encode()
 
     new_prev_messages = append_message_to_list(bldg.previous_messages, text)
     changes = %{previous_messages: new_prev_messages}

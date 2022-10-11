@@ -79,7 +79,7 @@ defmodule BldgServerWeb.BldgController do
 
 
   # SAY action
-  def act(conn, %{"resident_email" => email, "bldg_url" => bldg_url, "action_type" => "SAY", "say_speaker" => _speaker, "say_text" => _text, "say_time" => _msg_time, "say_flr" => _flr, "say_location" => _location, "say_mimetype" => _msg_mimetype, "say_recipient" => _recipient} = msg) do
+  def act(conn, %{"resident_email" => email, "bldg_url" => bldg_url, "action_type" => "SAY", "say_speaker" => _speaker, "say_text" => _text, "say_flr" => _flr, "say_location" => _location, "say_mimetype" => _msg_mimetype, "say_recipient" => _recipient} = msg) do
     bldg = Buildings.get_by_bldg_url(bldg_url)
     # TODO verify that the battery has a valid session & access & chat permissions in this bldg
 
