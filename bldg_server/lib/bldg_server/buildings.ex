@@ -360,12 +360,49 @@ Given an entity:
     }
   """
   def build(entity) do
-    bldg_params = entity
+    entity
     |> figure_out_flr()
     |> figure_out_bldg_url()
     |> decide_on_location()
     |> calculate_nesting_depth()
     |> remove_build_params()
+  end
+
+
+  # TODO duplicate code, please consolidate
+  def append_message_to_list(msg_list, msg) do
+    case msg_list do
+      nil -> [msg]
+      _ -> [msg | msg_list]
+    end
+  end
+
+
+  # TODO duplicate code, please consolidate
+  def is_command(msg_text), do: String.at(msg_text, 0) == "/"
+
+
+  # TODO duplicate code, please consolidate
+  def say(%Bldg{} = bldg, msg) do
+    {_, text} = msg
+    |> Map.merge(%{"say_time" => System.system_time(:millisecond)})
+    |> JSON.encode()
+
+    new_prev_messages = append_message_to_list(bldg.previous_messages, text)
+    changes = %{previous_messages: new_prev_messages}
+    result = update_bldg(bldg, changes)
+
+    # the message may be a command for bldg manipulation, so
+    # broadcast an event for it, so that the command executor can process it
+    if is_command(msg["say_text"]) do
+      BldgServerWeb.Endpoint.broadcast!(
+        "chat",
+        "new_message",
+        msg
+      )
+    end
+
+    result
   end
 
 end

@@ -77,4 +77,17 @@ defmodule BldgServerWeb.BldgController do
     end
   end
 
+
+  # SAY action
+  def act(conn, %{"resident_email" => email, "bldg_url" => bldg_url, "action_type" => "SAY", "say_speaker" => _speaker, "say_text" => _text, "say_flr" => _flr, "say_location" => _location, "say_mimetype" => _msg_mimetype, "say_recipient" => _recipient} = msg) do
+    bldg = Buildings.get_by_bldg_url(bldg_url)
+    # TODO verify that the battery has a valid session & access & chat permissions in this bldg
+
+    with {:ok, %Bldg{} = upd_bldg} <- Buildings.say(bldg, msg) do
+      conn
+      |> put_status(:ok)
+      |> put_resp_header("location", Routes.bldg_path(conn, :show, upd_bldg))
+      |> render("show.json", bldg: upd_bldg)
+    end
+  end
 end

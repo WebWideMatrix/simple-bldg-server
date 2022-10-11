@@ -30,6 +30,8 @@ defmodule BldgServerWeb.ResidentView do
       previous_messages: resident.previous_messages,
       other_attributes: resident.other_attributes,
       session_id: resident.session_id,
-      last_login_at: resident.last_login_at}
+      last_login_at: resident.last_login_at,
+      updated_at: resident.updated_at
+    }
   end
 end
