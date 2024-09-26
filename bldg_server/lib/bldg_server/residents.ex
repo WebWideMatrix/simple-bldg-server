@@ -186,9 +186,23 @@ defmodule BldgServer.Residents do
     update_resident(resident, changes)
   end
 
-  def enter_bldg(%Resident{} = resident, address, bldg_url) do
+  def enter_bldg(%Resident{} = resident, address, bldg_url, flr) do
+    IO.puts("~~~~~ 1")
+    container_bldg = Buildings.get_by_bldg_url(bldg_url)
+    IO.puts("~~~~~ 2")
+    IO.inspect(container_bldg)
+
     {initial_x, initial_y} = {8, 40}  # TODO read from config, per bldg type
-    changes = %{flr: "#{address}/l0", flr_url: "#{bldg_url}/l0", location: "#{address}/l0/b(#{initial_x},#{initial_y})", x: initial_x, y: initial_y}
+    changes = %{
+      flr: "#{address}/#{flr}",
+      flr_url: "#{bldg_url}/#{flr}",
+      location: "#{address}/#{flr}/b(#{initial_x},#{initial_y})",
+      x: initial_x,
+      y: initial_y,
+      nesting_depth: Buildings.calculate_nesting_depth(address),
+      container_entity_type: container_bldg.entity_type
+    }
+    IO.inspect(changes)
     update_resident(resident, changes)
   end
 
@@ -196,13 +210,28 @@ defmodule BldgServer.Residents do
     # get the container flr
     container_flr = Buildings.get_container_flr(address)
     container_flr_url = Buildings.get_container_flr_url(bldg_url)
+    container_entity_type = case container_flr_url do
+      "g" -> "g"
+      _ ->
+        container_bldg_url = Buildings.get_container(container_flr_url)
+        container_bldg = Buildings.get_by_bldg_url(container_bldg_url)
+        container_bldg.entity_type
+    end
 
     # determine the location next to the door of the bldg exited
     {x, y} = Buildings.extract_coords(address)
     new_x = x
     new_y = y + 6
 
-    changes = %{flr: container_flr, flr_url: container_flr_url, location: "#{container_flr}/b(#{new_x},#{new_y})", x: new_x, y: new_y}
+    changes = %{
+      flr: container_flr,
+      flr_url: container_flr_url,
+      location: "#{container_flr}/b(#{new_x},#{new_y})",
+      x: new_x,
+      y: new_y,
+      nesting_depth: Buildings.calculate_nesting_depth(container_flr),
+      container_entity_type: container_entity_type
+    }
     update_resident(resident, changes)
   end
 
