@@ -8,8 +8,16 @@ defmodule BldgServerWeb.FloorChannel do
   require Logger
 
   def join("floor:" <> flr, _params, socket) do
-    Logger.info("[FloorChannel] Client joined floor:#{flr}")
-    {:ok, assign(socket, :flr, flr)}
+    # Require an authenticated principal to join (any resident, or a machine
+    # principal like a battery). Dual-run: when :enforce_auth is off, anonymous
+    # joins are allowed.
+    if socket.assigns[:current_resident] || socket.assigns[:machine_authed] ||
+         not BldgServerWeb.ResidentAuth.enforce_auth?() do
+      Logger.info("[FloorChannel] Client joined floor:#{flr}")
+      {:ok, assign(socket, :flr, flr)}
+    else
+      {:error, %{reason: "unauthorized"}}
+    end
   end
 
   def handle_in("request_scan", _params, socket) do
@@ -20,11 +28,13 @@ defmodule BldgServerWeb.FloorChannel do
     bldgs = Buildings.list_all_bldgs_in_flr(flr)
     residents = Residents.list_all_residents_in_flr(flr)
     roads = Relations.list_all_roads_in_flr(flr)
+    markers = Relations.list_all_markers_in_flr(flr)
 
     push(socket, "scan_result", %{
       bldgs: Enum.map([container | bldgs], &serialize_bldg/1),
-      residents: Enum.map(residents, &serialize_resident/1),
-      roads: Enum.map(roads, &serialize_road/1)
+      residents: Enum.map(residents, &serialize_resident_public/1),
+      roads: Enum.map(roads, &serialize_road/1),
+      markers: Enum.map(markers, &serialize_marker/1)
     })
 
     {:noreply, socket}
@@ -69,10 +79,15 @@ defmodule BldgServerWeb.FloorChannel do
     }
   end
 
-  def serialize_resident(resident) do
+  # Public resident shape broadcast over the floor channel to every joiner.
+  # DELIBERATELY omits `email` and `session_id`: the channel is world-readable
+  # (any socket can join a floor), and session_id is a credential used by the
+  # verification_status flow — neither may leak to other clients. Full detail
+  # (incl. email) is served only to the resident themselves via the
+  # authenticated REST endpoint.
+  def serialize_resident_public(resident) do
     %{
       id: resident.id,
-      email: resident.email,
       alias: resident.alias,
       name: resident.name,
       home_bldg: resident.home_bldg,
@@ -86,7 +101,6 @@ defmodule BldgServerWeb.FloorChannel do
       previous_messages: resident.previous_messages,
       other_attributes: resident.other_attributes,
       nesting_depth: resident.nesting_depth,
-      session_id: resident.session_id,
       last_login_at: resident.last_login_at,
       updated_at: resident.updated_at,
       view_mode: resident.view_mode
@@ -105,7 +119,24 @@ defmodule BldgServerWeb.FloorChannel do
       to_y: road.to_y,
       owners: road.owners,
       color: road.color,
-      road_class: road.road_class
+      road_class: road.road_class,
+      curve: road.curve
+    }
+  end
+
+  # Same shape as MarkerView.render("marker.json").
+  def serialize_marker(marker) do
+    %{
+      id: marker.id,
+      flr: marker.flr,
+      name: marker.name,
+      marker_type: marker.marker_type,
+      xs: marker.xs,
+      ys: marker.ys,
+      color: marker.color,
+      marker_class: marker.marker_class,
+      owners: marker.owners,
+      data: marker.data
     }
   end
 end

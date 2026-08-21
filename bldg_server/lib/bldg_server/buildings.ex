@@ -20,7 +20,7 @@ defmodule BldgServer.Buildings do
     "storage" => %{"3d_object" => "storageBuilding", "flr_height" => "0.7", "flr0_height" => "0.03"},
     "costs" => %{"3d_object" => "chestOfDrawers", "flr_height" => "2.57", "flr0_height" => "0.067"},
     "inbox" => %{"3d_object" => "tray", "flr_height" => "2.57", "flr0_height" => "0.067"},
-    "sales" => %{"3d_object" => "bookCabinet", "flr_height" => "3.0", "flr0_height" => "1.3"},
+    "sales" => %{"3d_object" => "bookCabinet", "flr_height" => "0.5", "flr0_height" => "-0.12"},
     "goal" => %{"3d_object" => "livingRoomTable", "flr_height" => "1.08", "flr0_height" => "1.11"},
     "purpose" => %{"3d_object" => "whiteboard"},
     "cantata" => %{"3d_object" => "presentationStand"},
@@ -89,10 +89,12 @@ defmodule BldgServer.Buildings do
     # Delimiter-safe: match the floor exactly (direct children) or a strict
     # sub-path ("flr/..."). A bare "flr%" prefix would also match a numerically-
     # prefixed sibling floor (e.g. ".../l1" wrongly matching ".../l10").
+    flr_subtree = Utils.escape_like_pattern(flr) <> "/%"
+
     q =
       from(b in Bldg,
         where:
-          b.flr == ^flr or like(b.flr, ^"#{flr}/%") or
+          b.flr == ^flr or like(b.flr, ^flr_subtree) or
             (^include_parent and b.address == ^parent_addr)
       )
 
@@ -353,6 +355,7 @@ defmodule BldgServer.Buildings do
     cs =
       %Bldg{}
       |> Bldg.changeset(attrs)
+      |> reject_if_overlapping()
 
     # TODO figure out better way to notify bldg_url & address
     created_bldg_url = attrs["bldg_url"]
@@ -364,6 +367,21 @@ defmodule BldgServer.Buildings do
     case cs.errors do
       [] ->
         result = Repo.insert(cs)
+
+        # FAIL LOUD: command execution is async, so the HTTP caller already got
+        # its 200 — a failed INSERT must be logged clearly here or it vanishes
+        # silently (the "artifact created but never rendered" class of bug).
+        case result do
+          {:error, failed_cs} ->
+            Logger.error(
+              "Failed to create bldg #{inspect(created_bldg_url)}: " <>
+                "#{inspect(failed_cs.errors)}"
+            )
+
+          _ ->
+            :ok
+        end
+
         notify_bldg_created(result, "bldg_created", created_bldg_ids, triggering_chat_msg)
         broadcast_bldg_change(result, "bldg_created")
         result
@@ -374,6 +392,33 @@ defmodule BldgServer.Buildings do
         # pattern-match {:error, _} — can render a 422 rather than 500.
         Logger.error("Failed to prepare bldg for writing to database: #{inspect(cs.errors)}")
         {:error, cs}
+    end
+  end
+
+  # Reject a create whose footprint would overlap an existing bldg on the same
+  # floor. Auto-placement already avoids this (find_free_footprint chooses a
+  # clear slot); this guards the *explicit*-placement path — where a caller
+  # supplies exact coords — since the unique-address constraint only catches an
+  # identical origin, not a partial footprint overlap.
+  defp reject_if_overlapping(%Ecto.Changeset{valid?: false} = cs), do: cs
+
+  defp reject_if_overlapping(cs) do
+    flr = Ecto.Changeset.get_field(cs, :flr)
+    x = Ecto.Changeset.get_field(cs, :x)
+    y = Ecto.Changeset.get_field(cs, :y)
+    width = Ecto.Changeset.get_field(cs, :width) || 1
+    height = Ecto.Changeset.get_field(cs, :height) || 1
+
+    if is_binary(flr) and is_integer(x) and is_integer(y) do
+      candidate = %{x: x, y: y, width: width, height: height}
+
+      if Enum.any?(occupied_footprints(flr), &footprints_overlap?(candidate, &1)) do
+        Ecto.Changeset.add_error(cs, :address, "footprint overlaps an existing bldg on this floor")
+      else
+        cs
+      end
+    else
+      cs
     end
   end
 
@@ -493,8 +538,8 @@ defmodule BldgServer.Buildings do
 
   @doc """
   Deletes a bldg and all nested children (cascade).
-  Deletes deepest children first, then roads, then the target bldg.
-  Each deletion broadcasts its own bldg_deleted/road_deleted event.
+  Deletes deepest children first, then roads/markers, then the target bldg.
+  Each deletion broadcasts its own bldg_deleted/road_deleted/marker_deleted event.
   """
   def delete_bldg_cascade(%Bldg{} = bldg) do
     # Find all nested child bldgs
@@ -504,16 +549,22 @@ defmodule BldgServer.Buildings do
     children
     |> Enum.sort_by(& &1.nesting_depth, :desc)
     |> Enum.each(fn child ->
-      # Delete roads on the child's floors
+      # Delete roads and markers on the child's floors
       BldgServer.Relations.list_all_roads_in_flr(child.address)
       |> Enum.each(&BldgServer.Relations.delete_road/1)
+
+      BldgServer.Relations.list_all_markers_in_flr(child.address)
+      |> Enum.each(&BldgServer.Relations.delete_marker/1)
 
       delete_bldg(child)
     end)
 
-    # Delete roads on the target bldg's floors
+    # Delete roads and markers on the target bldg's floors
     BldgServer.Relations.list_all_roads_in_flr(bldg.address)
     |> Enum.each(&BldgServer.Relations.delete_road/1)
+
+    BldgServer.Relations.list_all_markers_in_flr(bldg.address)
+    |> Enum.each(&BldgServer.Relations.delete_marker/1)
 
     # Delete the target bldg itself
     delete_bldg(bldg)
@@ -564,6 +615,15 @@ defmodule BldgServer.Buildings do
       }
 
       BldgServer.Relations.update_road(road, attrs)
+    end)
+
+    # Markers on descendant floors: rebase the floor only — their points are
+    # floor-local cells and unchanged.
+    old_address
+    |> BldgServer.Relations.list_all_markers_in_flr()
+    |> Enum.each(fn marker ->
+      attrs = %{"flr" => rebase_segment(marker.flr, old_addr_root, new_addr_root)}
+      BldgServer.Relations.update_marker(marker, attrs)
     end)
   end
 
@@ -998,9 +1058,23 @@ defmodule BldgServer.Buildings do
     Map.put(entity, "nesting_depth", depth)
   end
 
+  # Stairs bldgs (variant "stairs<N>") get the backward per-floor indentation
+  # their shell prefab is built with, so the client shifts each floor's
+  # contents to match. Must equal StairsBldgGeometry.FLR_INDENT in the
+  # bldg-client repo.
+  @stairs_flr_indent "0.6"
+
+  defp maybe_add_stairs_indent(data, %{"variant" => "stairs" <> _}),
+    do: Map.put(data, :flr_indent, @stairs_flr_indent)
+
+  defp maybe_add_stairs_indent(data, _entity), do: data
+
   def add_composite_bldg_metadata(%{"entity_type" => "ground"} = entity) do
     vl_entry = @default_visual_language["ground"]
-    default_data = %{flr_height: vl_entry["flr_height"], flr0_height: vl_entry["flr0_height"]}
+
+    default_data =
+      %{flr_height: vl_entry["flr_height"], flr0_height: vl_entry["flr0_height"]}
+      |> maybe_add_stairs_indent(entity)
 
     combined_data =
       case Map.get(entity, "data") do
@@ -1021,7 +1095,10 @@ defmodule BldgServer.Buildings do
   def add_composite_bldg_metadata(%{"entity_type" => entity_type} = entity) do
     case Map.get(@default_visual_language, entity_type) do
       %{"flr_height" => flr_height, "flr0_height" => flr0_height} ->
-        data = %{flr_height: flr_height, flr0_height: flr0_height}
+        data =
+          %{flr_height: flr_height, flr0_height: flr0_height}
+          |> maybe_add_stairs_indent(entity)
+
         {_, data_json} = JSON.encode(data)
 
         visual_language = Map.get(entity, "visual_language") || @default_visual_language

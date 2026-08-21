@@ -4,7 +4,7 @@ use Mix.Config
 config :bldg_server, BldgServer.Repo,
   username: System.get_env("DB_USER", "postgres"),
   password: System.get_env("DB_PASSWORD", ""),
-  database: "postgres",
+  database: System.get_env("DB_NAME", "postgres"),
   hostname: System.get_env("DB_HOST", "db"),
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -33,6 +33,9 @@ config :bldg_server,
 
 config :bldg_server,
   app_hostname: "localhost"
+
+# Allow loopback/private battery callback_urls locally (batteries run on localhost).
+config :bldg_server, :block_private_callback_urls, false
 
 
 # ## SSL Support

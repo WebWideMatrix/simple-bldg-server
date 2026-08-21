@@ -44,7 +44,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
       raise "Unauthorized"
     else
       Buildings.update_bldg(bldg, %{"owners" => [email | bldg.owners]})
-      IO.puts("owner added to bldg #{bldg_url}: #{email}")
+      Logger.info("owner added to bldg #{bldg_url}")
     end
   end
 
@@ -63,7 +63,7 @@ defmodule BldgServerWeb.BldgCommandExecutor do
       else
         new_owners = List.delete_at(bldg.owners, pos)
         Buildings.update_bldg(bldg, %{"owners" => new_owners})
-        IO.puts("owner removed from bldg #{bldg_url}: #{email}")
+        Logger.info("owner removed from bldg #{bldg_url}")
       end
     end
   end
@@ -72,11 +72,12 @@ defmodule BldgServerWeb.BldgCommandExecutor do
   # TODO handle the case where there are multiple bldgs for the same website - check the ones owned by the user in order to resolve
   def execute_command(["/connect", "between", name1, "and", name2 | rest], msg) do
     # create a road between the given bldgs, inside the given flr.
-    # Optional tail: `with color <name> and class <highway|road|lane|path>`
-    # (either order; either one alone also valid). Defaults: color=nil,
-    # class="road" — bare `/connect between A and B` renders unchanged.
+    # Optional tail: `with color <name> and class <highway|road|lane|path>
+    # and curve <auto|never>` (any order/subset). Defaults: color=nil,
+    # class="road", curve="auto" — bare `/connect between A and B` renders
+    # unchanged.
 
-    {color, road_class} = parse_connect_options(rest)
+    {color, road_class, curve} = parse_connect_options(rest)
 
     # validate that the actor resident/bldg has the sufficient permissions
     container_bldg = Buildings.get_flr_bldg(msg["say_flr"]) |> Buildings.get_bldg!()
@@ -86,58 +87,161 @@ defmodule BldgServerWeb.BldgCommandExecutor do
     else
       # TODO return proper errors
       flr_url = msg["say_flr_url"]
-      bldg1_url = "#{flr_url}#{Buildings.address_delimiter()}#{name1}"
-      bldg1 = Buildings.get_by_bldg_url(bldg1_url)
-      from_addr = bldg1.address
-      {from_x, from_y} = Buildings.extract_coords(from_addr)
-      bldg2_url = "#{flr_url}#{Buildings.address_delimiter()}#{name2}"
-      bldg2 = Buildings.get_by_bldg_url(bldg2_url)
-      to_addr = bldg2.address
-      {to_x, to_y} = Buildings.extract_coords(to_addr)
+      bldg1 = Buildings.get_by_bldg_url("#{flr_url}#{Buildings.address_delimiter()}#{name1}")
+      bldg2 = Buildings.get_by_bldg_url("#{flr_url}#{Buildings.address_delimiter()}#{name2}")
 
-      road = %{
-        "flr" => msg["say_flr"],
-        "flr_url" => msg["say_flr_url"],
-        "from_address" => from_addr,
-        "to_address" => to_addr,
-        "from_x" => from_x,
-        "from_y" => from_y,
-        "to_x" => to_x,
-        "to_y" => to_y,
-        "owners" => [msg["resident_email"]],
-        "color" => color,
-        "road_class" => road_class || "road"
-      }
+      cond do
+        is_nil(bldg1) or is_nil(bldg2) ->
+          # A road endpoint isn't on this floor: a race-late create (the bldg's
+          # relocate echo hasn't landed) or a stale re-emit (the bldg moved or was
+          # removed by a later render). Skip gracefully instead of crashing on
+          # nil.address — that raised an Internal Server Error (HTTP 500) for what
+          # is a benign, self-correcting condition: batteries re-emit roads
+          # idempotently, so a transient miss heals on a later pass.
+          IO.puts(
+            "~~ /connect skipped: endpoint not found on #{flr_url} (#{name1} and/or #{name2})"
+          )
 
-      # Idempotent: re-emitting an identical road (watch / re-render passes, or
-      # the organize-check's road re-emission) must not stack duplicate records.
-      case Relations.find_road(msg["say_flr"], from_addr, to_addr) do
-        nil -> Relations.create_road(road)
-        existing -> {:ok, existing}
+          {:ok, :skipped}
+
+        true ->
+          from_addr = bldg1.address
+          {from_x, from_y} = Buildings.extract_coords(from_addr)
+          to_addr = bldg2.address
+          {to_x, to_y} = Buildings.extract_coords(to_addr)
+
+          road = %{
+            "flr" => msg["say_flr"],
+            "flr_url" => msg["say_flr_url"],
+            "from_address" => from_addr,
+            "to_address" => to_addr,
+            "from_x" => from_x,
+            "from_y" => from_y,
+            "to_x" => to_x,
+            "to_y" => to_y,
+            "owners" => [msg["resident_email"]],
+            "color" => color,
+            "road_class" => road_class || "road",
+            "curve" => curve || "auto"
+          }
+
+          # Idempotent: re-emitting an identical road (watch / re-render passes, or
+          # the organize-check's road re-emission) must not stack duplicate records.
+          case Relations.find_road(msg["say_flr"], from_addr, to_addr) do
+            nil -> Relations.create_road(road)
+            existing -> {:ok, existing}
+          end
       end
     end
   end
 
-  # Parse the optional `with color X and class Y` (or `with class Y and color X`)
-  # tail of a `/connect between A and B` command. Returns {color, class} where
-  # either may be nil if not specified.
-  defp parse_connect_options([]), do: {nil, nil}
-  defp parse_connect_options(["with" | rest]), do: parse_connect_kwargs(rest, nil, nil)
-  defp parse_connect_options(_), do: {nil, nil}
+  # Draw a floor-level marker: a `path` polyline or a closed `area` polygon
+  # through floor cells. Unlike /connect, markers aren't anchored to bldgs —
+  # points are literal floor-local cells. Grammar (space-tokenized):
+  #
+  #   /mark path with name <name> and points (x,y) (x,y) ... [and color <c>] [and class <k>]
+  #   /mark area with name <name> and points (x,y) (x,y) (x,y) ... [and color <c>] [and class <k>]
+  #
+  # kwargs may come in any order; `and` separators are optional; `name` is a
+  # single token. Identity is (flr, name): a repeat say upserts (no duplicates,
+  # and an unchanged re-emit is a no-op).
+  def execute_command(["/mark", kind, "with" | rest], msg) when kind in ["path", "area"] do
+    {name, points, color, klass} = parse_mark_kwargs(rest, nil, [], nil, nil)
 
-  defp parse_connect_kwargs([], color, klass), do: {color, klass}
+    if is_nil(name) or name == "" do
+      raise "/mark #{kind}: missing required `name` (e.g. `/mark #{kind} with name my-#{kind} and points (0,0) (1,1)`)"
+    end
 
-  defp parse_connect_kwargs(["color", v | rest], _color, klass),
-    do: parse_connect_kwargs(skip_and(rest), v, klass)
+    min_points = if kind == "area", do: 3, else: 2
 
-  defp parse_connect_kwargs(["class", v | rest], color, _klass),
-    do: parse_connect_kwargs(skip_and(rest), color, v)
+    if length(points) < min_points do
+      raise "/mark #{kind}: needs at least #{min_points} points (got #{length(points)}), e.g. `and points (0,0) (1,1)`"
+    end
 
-  defp parse_connect_kwargs([_ | rest], color, klass),
-    do: parse_connect_kwargs(rest, color, klass)
+    # validate that the actor resident/bldg has the sufficient permissions
+    container_bldg = Buildings.get_flr_bldg(msg["say_flr"]) |> Buildings.get_bldg!()
+
+    if not Buildings.is_authorized_owner?(msg["resident_email"], container_bldg) do
+      raise "#{msg["resident_email"]} is not authorized to create markers inside #{container_bldg.web_url}"
+    else
+      {xs, ys} = Enum.unzip(points)
+
+      marker = %{
+        "flr" => msg["say_flr"],
+        "name" => name,
+        "marker_type" => kind,
+        "xs" => xs,
+        "ys" => ys,
+        "color" => color,
+        "marker_class" => klass || "road",
+        "owners" => [msg["resident_email"]]
+      }
+
+      IO.puts("~~ /mark #{kind} #{name} on #{msg["say_flr"]} (#{length(points)} points)")
+      Relations.upsert_marker(marker)
+    end
+  end
+
+  # Parse the optional `with color X and class Y and curve Z` tail of a
+  # `/connect between A and B` command (any kwarg order/subset). Returns
+  # {color, class, curve} where each may be nil if not specified. Also accepts
+  # a tail starting with `and` (`... and class Y`) — older bldg-battery
+  # clients emitted that form when sending a class without a color, and the
+  # class was silently dropped.
+  defp parse_connect_options([]), do: {nil, nil, nil}
+  defp parse_connect_options(["with" | rest]), do: parse_connect_kwargs(rest, nil, nil, nil)
+  defp parse_connect_options(["and" | rest]), do: parse_connect_kwargs(rest, nil, nil, nil)
+  defp parse_connect_options(_), do: {nil, nil, nil}
+
+  defp parse_connect_kwargs([], color, klass, curve), do: {color, klass, curve}
+
+  defp parse_connect_kwargs(["color", v | rest], _color, klass, curve),
+    do: parse_connect_kwargs(skip_and(rest), v, klass, curve)
+
+  defp parse_connect_kwargs(["class", v | rest], color, _klass, curve),
+    do: parse_connect_kwargs(skip_and(rest), color, v, curve)
+
+  defp parse_connect_kwargs(["curve", v | rest], color, klass, _curve),
+    do: parse_connect_kwargs(skip_and(rest), color, klass, v)
+
+  defp parse_connect_kwargs([_ | rest], color, klass, curve),
+    do: parse_connect_kwargs(rest, color, klass, curve)
 
   defp skip_and(["and" | rest]), do: rest
   defp skip_and(rest), do: rest
+
+  @mark_point_re ~r/^\((-?\d+),(-?\d+)\)$/
+
+  # Parse the `name X and points (x,y) ... and color C and class K` tail of a
+  # `/mark` command (any kwarg order/subset). `points` consumes every
+  # consecutive `(x,y)` token. Returns {name, [{x, y}], color, class}.
+  defp parse_mark_kwargs([], name, points, color, klass), do: {name, points, color, klass}
+
+  defp parse_mark_kwargs(["name", v | rest], _name, points, color, klass),
+    do: parse_mark_kwargs(skip_and(rest), v, points, color, klass)
+
+  defp parse_mark_kwargs(["points" | rest], name, _points, color, klass) do
+    {points, rest} = take_mark_points(rest, [])
+    parse_mark_kwargs(skip_and(rest), name, points, color, klass)
+  end
+
+  defp parse_mark_kwargs(["color", v | rest], name, points, _color, klass),
+    do: parse_mark_kwargs(skip_and(rest), name, points, v, klass)
+
+  defp parse_mark_kwargs(["class", v | rest], name, points, color, _klass),
+    do: parse_mark_kwargs(skip_and(rest), name, points, color, v)
+
+  defp parse_mark_kwargs([_ | rest], name, points, color, klass),
+    do: parse_mark_kwargs(rest, name, points, color, klass)
+
+  defp take_mark_points([tok | rest] = all, acc) do
+    case Regex.run(@mark_point_re, tok) do
+      [_, x, y] -> take_mark_points(rest, [{String.to_integer(x), String.to_integer(y)} | acc])
+      nil -> {Enum.reverse(acc), all}
+    end
+  end
+
+  defp take_mark_points([], acc), do: {Enum.reverse(acc), []}
 
   def fetch_data(data_url) do
     case data_url do
@@ -191,6 +295,8 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         color,
         size,
         variant,
+        width,
+        height,
         msg
       ) do
     # create a bldg with the given entity-type & name, inside the given flr & bldg
@@ -239,6 +345,8 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         |> put_if_present("color", color)
         |> put_if_present("size", size)
         |> put_if_present("variant", variant)
+        |> put_if_present("width", width)
+        |> put_if_present("height", height)
 
       Buildings.build(entity)
       |> Buildings.create_bldg(msg)
@@ -264,11 +372,31 @@ defmodule BldgServerWeb.BldgCommandExecutor do
     color = ""
     size = ""
     variant = ""
+    # nil (not "") sentinel: dimensions are integers, so put_if_present skips
+    # them when unspecified and the schema default (1) applies.
+    width = nil
+    height = nil
+
+    # `summary` is free text and must be the LAST parameter: everything after
+    # the first `summary` token is the summary, verbatim. The keyword scan
+    # below only sees the tokens BEFORE it — previously a keyword word inside
+    # the summary text ("...I wrote name generating SW...") re-bound that
+    # field, silently hijacking the bldg's name/color/state with prose.
+    {parameters_tokens, summary} =
+      case Enum.find_index(parameters_tokens, &(&1 == "summary")) do
+        nil ->
+          {parameters_tokens, summary}
+
+        idx ->
+          {Enum.take(parameters_tokens, idx),
+           parameters_tokens |> Enum.drop(idx + 1) |> Enum.join(" ")}
+      end
 
     # Loop through parameters with index
     Enum.with_index(parameters_tokens)
     |> Enum.reduce(
-      {name, web_url, summary, category, picture_url, data_url, state, color, size, variant},
+      {name, web_url, summary, category, picture_url, data_url, state, color, size, variant,
+       width, height},
       fn
         {"name", i}, acc ->
           name = Enum.at(parameters_tokens, i + 1)
@@ -296,7 +424,9 @@ defmodule BldgServerWeb.BldgCommandExecutor do
                   "state",
                   "color",
                   "size",
-                  "variant"
+                  "variant",
+                  "width",
+                  "height"
                 ],
                 x
               )
@@ -341,12 +471,18 @@ defmodule BldgServerWeb.BldgCommandExecutor do
           acc = put_elem(acc, 9, variant)
           acc
 
+        {"width", i}, acc ->
+          put_elem(acc, 10, parse_dimension(Enum.at(parameters_tokens, i + 1)))
+
+        {"height", i}, acc ->
+          put_elem(acc, 11, parse_dimension(Enum.at(parameters_tokens, i + 1)))
+
         _, acc ->
           acc
       end
     )
     |> then(fn {name, web_url, summary, category, picture_url, data_url, state, color, size,
-                variant} ->
+                variant, width, height} ->
       create_bldg_from_command(
         entity_type,
         name,
@@ -359,9 +495,22 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         color,
         size,
         variant,
+        width,
+        height,
         msg
       )
     end)
+  end
+
+  # Dimensions must be whole positive cell-counts; a missing or non-integer token
+  # yields nil so the schema default (1) applies rather than a bad value.
+  defp parse_dimension(nil), do: nil
+
+  defp parse_dimension(token) do
+    case Integer.parse(token) do
+      {n, ""} when n > 0 -> n
+      _ -> nil
+    end
   end
 
   # move bldg
@@ -570,8 +719,40 @@ defmodule BldgServerWeb.BldgCommandExecutor do
         raise "Unauthorized"
 
       true ->
-        Buildings.update_bldg(bldg, %{field => cast_edit_value(field, value)})
-        IO.puts("bldg edited: #{bldg_url} #{field}=#{value}")
+        new_value = cast_edit_value(field, value)
+
+        new_value =
+          if field == "data" do
+            preserve_geometry_data_keys(bldg.data, new_value)
+          else
+            new_value
+          end
+
+        Buildings.update_bldg(bldg, %{field => new_value})
+        IO.puts("bldg edited: #{bldg_url} #{field}=#{new_value}")
+    end
+  end
+
+  # The server injects prefab-geometry keys (flr heights / indents) into a
+  # composite bldg's `data` at CREATE time (add_composite_bldg_metadata), and
+  # the client positions the bldg's CONTENTS from them. A battery's
+  # `/edit <name> data {...}` (e.g. file-system-battery's attach_raw_data)
+  # would otherwise silently clobber them — the bldg's interior then loses its
+  # floor reference and renders at the bldg baseline. Preserve any geometry
+  # key the new payload doesn't explicitly set.
+  @geometry_data_keys ~w(flr_height flr0_height flr_indent stairs_indent)
+  defp preserve_geometry_data_keys(existing_json, new_json) do
+    with existing when is_binary(existing) <- existing_json,
+         {:ok, existing_map} when is_map(existing_map) <- JSON.decode(existing),
+         {:ok, new_map} when is_map(new_map) <- JSON.decode(new_json) do
+      preserved = Map.take(existing_map, @geometry_data_keys)
+
+      case Map.merge(preserved, new_map) do
+        merged when merged == new_map -> new_json
+        merged -> JSON.encode!(merged)
+      end
+    else
+      _ -> new_json
     end
   end
 
@@ -583,6 +764,16 @@ defmodule BldgServerWeb.BldgCommandExecutor do
     value
     |> String.split(",", trim: true)
     |> Enum.map(&String.trim/1)
+  end
+
+  # data carries a JSON object as a string; reject anything that doesn't
+  # parse rather than store a broken value the client can't render (e.g. a
+  # command truncated by the chat input length limit).
+  defp cast_edit_value("data", value) do
+    case JSON.decode(value) do
+      {:ok, decoded} when is_map(decoded) -> value
+      _ -> raise "Invalid value for data - must be a JSON object, got: #{value}"
+    end
   end
 
   defp cast_edit_value(_field, value), do: value
